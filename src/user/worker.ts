@@ -3,6 +3,7 @@ import { Job } from 'bullmq';
 import { queueNames } from 'src/common/queue';
 import { UserRepository } from './repo/user';
 import { Logger } from '@nestjs/common';
+import { getUserWorkerMessage } from './handler/job.handler';
 
 @Processor(queueNames.USER, { concurrency: 10 })
 export class UserWorker extends WorkerHost {
@@ -18,8 +19,8 @@ export class UserWorker extends WorkerHost {
   // if there is multi jobs , use job name to show that the event is to this job
 
   @OnWorkerEvent('completed')
-  write_log() {
-    this.logger.log('user photo deleted from db successfully');
+  write_log(job:Job) {
+    this.logger.log(getUserWorkerMessage('completed',job.name));
   }
 
   @OnWorkerEvent('failed')

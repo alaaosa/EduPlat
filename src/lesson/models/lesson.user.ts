@@ -23,8 +23,15 @@ import { Video } from './types/video.model';
     {
       unique: true,
       fields: ['videoId', 'userId'],
-    },{
+    },
+    {
       fields: ['completed'],
+    },
+    {
+      fields: ['completed', 'videoId', 'userId'],
+    },
+    {
+      fields:['userId' , 'completed']
     }
   ],
 })

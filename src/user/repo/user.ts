@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../entities/user.entity';
 import { HandleException } from 'src/db/db.service';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { UserSetting } from '../entities/user.setting';
-import { CreationAttributes, Transaction } from 'sequelize';
+import { CreationAttributes, Sequelize, Transaction } from 'sequelize';
 import { UserState } from '../entities/user.states';
 
 @Injectable()
@@ -12,6 +12,7 @@ export class UserRepository {
     private handleException: HandleException,
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(UserState) private readonly userStateModel: typeof UserState,
+    @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
 
   findById(id: number) {
@@ -122,4 +123,22 @@ export class UserRepository {
       this.userModel.findByPk(userId, { attributes: ['id', 'email'] }),
     );
   }
+
+  incrementCountOfCompletedCourse(id: number) {
+    return this.handleException.handle(async () =>
+      this.userStateModel.increment('courseCompleted', {
+        by: 1,
+        where: { id },
+      }),
+    );
+  }
+
+  updatePassword(userId: number, password: string) {
+    return this.handleException.handle(async () =>
+      this.userModel.update({ password }, { where: { id: userId } }),
+    );
+  }
+
+ 
+  
 }

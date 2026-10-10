@@ -32,5 +32,6 @@ import { CommunicationRealtimeService } from './communication-realtime.service';
     CommunicationAuthGuard,
     CommunicationRealtimeService,
   ],
+  exports: [GroupRepository],
 })
 export class GroupModule {}

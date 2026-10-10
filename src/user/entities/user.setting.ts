@@ -45,12 +45,21 @@ export class UserSetting extends Model<
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  declare twoFactorAuthentication: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
     defaultValue: true,
   })
   declare emailNotification: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
     defaultValue: true,
   })
   declare pushNotification: boolean;

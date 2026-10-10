@@ -1,0 +1,41 @@
+type Query {
+  studentDashboard: StudentDashboard!
+}
+
+type StudentDashboard {
+  courseStats: CourseStats!
+  enrolledCourses: [DashboardCourse!]!
+  leaderboard: DashboardLeaderboard!
+  streak: DashboardStreak!
+}
+
+type CourseStats {
+  total: Int!
+  completed: Int!
+  inProgress: Int!
+}
+
+type DashboardCourse {
+  id: ID!
+  title: String
+  thumbnail: String
+  instructor: DashboardInstructor
+  progress: DashboardCourseProgress
+}
+
+type DashboardInstructor {
+  name: String
+}
+
+type DashboardCourseProgress {
+  percentage: Float!
+  completed: Boolean!
+}
+
+type DashboardLeaderboard {
+  rank: Int
+}
+
+type DashboardStreak {
+  current: Int
+}

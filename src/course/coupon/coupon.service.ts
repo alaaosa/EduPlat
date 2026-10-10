@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -70,11 +71,17 @@ export class CouponService {
     }
   }
 
+  /**
+   * @param coupon 
+   * @param courseId 
+   * @param req 
+   * @returns original price, coupon details and new price after applying coupon
+   */
   async validateCoupon(
     coupon: string,
     courseId: number,
     req: Request,
-  ) {
+  ): Promise<any> {
     const coupon_exist = await this.couponRepo.findByCoupon(coupon);
     if (!coupon_exist) throw new NotFoundException('coupon not valid');
 
@@ -85,7 +92,7 @@ export class CouponService {
     if (date < Date.now()) throw new BadRequestException('coupon is expired');
 
     if (coupon_exist.currentUsage == coupon_exist.maxUsage)
-      throw new BadRequestException('coupon not valid');
+      throw new ForbiddenException('coupon not valid');
 
     const course = await this.courseRepo.isExist(courseId);
     if (!course) throw new NotFoundException('course price not available');

@@ -24,7 +24,7 @@ export class CheckoutService {
 
     if (price_session && price_session.courseId == courseId) {
       return {
-        ...course.toJSON(),
+        ...course,
         price: price_session.price,
       };
     }

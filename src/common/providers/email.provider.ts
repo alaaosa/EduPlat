@@ -13,6 +13,7 @@ export class EmailProvider {
     },
   });
 
+
   async send(options: nodemailer.SendMailOptions) {
     return this.transporter.sendMail(options);
   }

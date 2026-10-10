@@ -67,8 +67,8 @@ export class CreateCourseDto {
   @IsEnum(CourseLanguage)
   language!: CourseLanguage;
 
-  @ValidateNested({ each: true })
   @Type(() => ThumbnailDto)
+  @ValidateNested({ each: true })
   image!: ThumbnailDto;
 
   @IsOptional()

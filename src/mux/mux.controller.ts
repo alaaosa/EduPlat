@@ -13,8 +13,10 @@ import {
   Headers,
 } from '@nestjs/common';
 import { MuxService } from './mux.service';
-import { Request } from 'express';
+import type { Request } from 'express';
 import Mux from '@mux/mux-node';
+import { Auth } from 'src/common/decorators/decomposition.decorater';
+import { UserRoles } from 'src/common/enum';
 
 @Controller('mux')
 export class MuxController {
@@ -22,11 +24,6 @@ export class MuxController {
     private readonly muxService: MuxService,
     @Inject('MUX_CLIENT') private mux: Mux,
   ) {}
-
-  @Post('upload-url/:lessonId')
-  uploadURl(@Param('lessonId', ParseIntPipe) id: number) {
-    return this.muxService.createUploadUrl(id);
-  }
 
   @Get('assets/:assetId')
   getAsset(@Param('assetId') assetId: string) {

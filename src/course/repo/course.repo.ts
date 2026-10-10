@@ -14,6 +14,17 @@ import { MeilisearchService } from 'src/meilisearch/meilisearch.service';
 import { CourseReject } from '../entities/course.reject';
 import { Enrollment } from '../enrollment/entities/enrollment.entity';
 import { Review } from '../review/entities/review.entity';
+import { Video } from 'src/lesson/models/types/video.model';
+import { Quiz } from 'src/assessment2/quiz/entities/quiz.entity';
+import { Attempt } from 'src/assessment2/models/attempt';
+import { Progress as VideoProgress } from 'src/lesson/models/lesson.user';
+import { examType } from 'src/assessment2/models/MCQ&TF/question';
+import { AttemptStatus } from 'src/assessment2/shared/enum/attempt';
+import { CourseStatus } from '../shared/enum';
+import { Payment } from 'src/payment/entities/payment.entity';
+import { PurchasableTypes } from 'src/payment/enum';
+import { model } from 'mongoose';
+import { Instructer } from 'src/instructer/entities/instructer';
 
 @Injectable()
 export class CourseRepository {
@@ -35,6 +46,8 @@ export class CourseRepository {
     private readonly goalModel: typeof CourseGoal,
     @InjectModel(CourseReject)
     private readonly courseRejectModel: typeof CourseReject,
+    @InjectModel(Video) private readonly videoModel: typeof Video,
+    @InjectModel(Quiz) private readonly quizModel: typeof Quiz,
     @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
 
@@ -60,6 +73,33 @@ export class CourseRepository {
       });
     });
   }
+  findForReviewById(id: number) {
+    return this.handleException.handle(async () => {
+      return this.courseModel.findByPk(id, {
+        attributes: ['id', 'status', 'instructerId'],
+        include: [
+          {
+            model: Section,
+            as: 'sections',
+            attributes: [],
+            include: [
+              {
+                model: Lesson,
+                as: 'lessons',
+                attributes: [],
+              },
+            ],
+          },
+          {
+            model: Instructer,
+            as: 'instructor',
+            attributes: ['stripeAccountId'],
+            required: true,
+          },
+        ],
+      });
+    });
+  }
 
   findAll() {
     return this.handleException.handle(async () => {
@@ -72,6 +112,7 @@ export class CourseRepository {
   findByIdAndCourseReject(id: number) {
     return this.handleException.handle(async () => {
       return this.courseModel.findByPk(id, {
+        attributes: [],
         include: [
           {
             model: CourseReject,
@@ -163,16 +204,28 @@ export class CourseRepository {
     });
   }
 
-  update(
+  createPrice(
     id: number,
     values: Partial<CreationAttributes<Course>>,
+    instructerId: number,
     transaction?: Transaction,
   ) {
     return this.handleException.handle(async () => {
       return this.courseModel.update(values, {
-        where: { id },
+        where: { id, instructerId },
         transaction,
       });
+    });
+  }
+  updateStatus(id: number, status: CourseStatus, transaction?: Transaction) {
+    return this.handleException.handle(async () => {
+      return this.courseModel.update(
+        { status },
+        {
+          where: { id },
+          transaction,
+        },
+      );
     });
   }
 
@@ -182,6 +235,14 @@ export class CourseRepository {
         where: { id },
       });
     });
+  }
+
+  changeStatus(id: number) {
+    return this.handleException.handle(async () =>
+      this.courseModel.findByPk(id, {
+        attributes: [],
+      }),
+    );
   }
 
   createRequirements(
@@ -238,6 +299,18 @@ export class CourseRepository {
     );
   }
 
+  findCourseToSection(id: number, instructerId: number) {
+    return this.handleException.handle(async () =>
+      this.courseModel.findOne({ where: { id, instructerId }, attributes: [] }),
+    );
+  }
+
+  findInstructerIdFromCourse(courseId: number) {
+    return this.handleException.handle(async () =>
+      this.courseModel.findByPk(courseId, { attributes: ['instructerId'] }),
+    );
+  }
+
   async findCheckOutData(courseId: number) {
     return this.handleException.handle(async () =>
       this.courseModel.findOne({
@@ -259,7 +332,6 @@ export class CourseRepository {
           )`),
             'lessonsCount',
           ],
-
           [
             Sequelize.literal(`(
             SELECT COALESCE(SUM(videos.duration), 0)
@@ -275,11 +347,21 @@ export class CourseRepository {
         ],
         include: [
           {
-            model: User,
+            model: Instructer,
             as: 'instructer',
-            attributes: ['id', 'name'],
+            attributes: ['instructerId', 'stripeAccountId'],
+            required: true,
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['name'],
+              },
+            ],
           },
         ],
+        raw: true,
+        nest: true, // => ex { instructer: { id: 1, name: 'John Doe' } }
       }),
     );
   }
@@ -306,6 +388,85 @@ export class CourseRepository {
         ],
       }),
     );
+  }
+
+  getCourseProgressCounts(courseId: number, userId: number) {
+    const videoCourseInclude = {
+      model: Lesson,
+      as: 'lesson',
+      attributes: [],
+      required: true,
+      include: [
+        {
+          model: Section,
+          as: 'section',
+          attributes: [],
+          where: { courseId },
+          required: true,
+        },
+      ],
+    };
+    const quizCourseInclude = {
+      model: Lesson,
+      as: 'lesson',
+      attributes: [],
+      required: true,
+      include: [
+        {
+          model: Section,
+          as: 'section',
+          attributes: [],
+          where: { courseId },
+          required: true,
+        },
+      ],
+    };
+
+    return this.handleException.handle(async () => {
+      const [totalVideos, completedVideos, totalQuizzes, completedQuizzes] =
+        await Promise.all([
+          this.videoModel.count({
+            include: [videoCourseInclude],
+            distinct: true,
+          }),
+          this.videoModel.count({
+            include: [
+              videoCourseInclude,
+              {
+                model: VideoProgress,
+                as: 'progress',
+                attributes: [],
+                where: { userId, completed: true },
+                required: true,
+              },
+            ],
+            distinct: true,
+          }),
+          this.quizModel.count({
+            include: [quizCourseInclude],
+            distinct: true,
+          }),
+          this.quizModel.count({
+            include: [
+              quizCourseInclude,
+              {
+                model: Attempt,
+                as: 'attempts',
+                attributes: [],
+                where: {
+                  userId,
+                  examType: examType.QUIZ,
+                  status: AttemptStatus.COMPLETED,
+                },
+                required: true,
+              },
+            ],
+            distinct: true,
+          }),
+        ]);
+
+      return { totalVideos, completedVideos, totalQuizzes, completedQuizzes };
+    });
   }
 
   incrementLessonsCount(courseId: number, transaction?: Transaction) {
@@ -550,5 +711,161 @@ export class CourseRepository {
         ],
       }),
     );
+  }
+
+  findCourseToProgress(courseId: number, userId: number) {
+    return this.handleException.handle(async () =>
+      this.courseModel.findByPk(courseId, {
+        attributes: ['id'],
+        include: [
+          {
+            model: Enrollment,
+            as: 'enrollments',
+            attributes: ['id'],
+            where: { userId },
+            required: false,
+          },
+        ],
+      }),
+    );
+  }
+
+  findAllCoursesToInstructorDashboard(
+    instructorId: number,
+    page: number = 1,
+    limit: number = 4,
+  ) {
+    return this.handleException.handle(async () => {
+      return this.courseModel.findAll({
+        where: {
+          instructerId: instructorId,
+        },
+        offset: (page - 1) * limit,
+        limit,
+
+        attributes: [
+          'id',
+          'title',
+          'status',
+          'thumbnail',
+          'price',
+          'category',
+          'avgRating',
+          'createdAt',
+          'updatedAt',
+          'total_duration',
+
+          [
+            // get count of students enrolled in the instructor's courses by subQuery
+            this.sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM enrollments AS e
+              WHERE e.courseId = Course.id
+            )`),
+            'num_of_students',
+          ],
+
+          [
+            // get count of lessons in the instructor's courses by subQuery
+            this.sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM sections AS s
+              JOIN lessons AS l ON s.id = l.sectionId
+              WHERE s.courseId = Course.id
+            )`),
+            'num_of_lessons',
+          ],
+        ],
+        raw: true,
+      });
+    });
+  }
+
+  // /**
+  //  * @param instructerId
+  //  * @returns number of active courses for the given instructor
+  //  */
+  // getActiveCoursesCount(instructerId: number) {
+  //   return this.handleException.handle(async () => {
+  //     return this.courseModel.count({
+  //       where: { status: CourseStatus.PUBLISHED, instructerId },
+  //     });
+  //   });
+  // }
+
+  // get the total number of students for the given instructor
+
+  // getInstructerDataDashboard(instructerId: number) {
+  //   return this.handleException.handle(async () =>
+  //     this.courseModel.findAll({
+  //       where: { instructerId },
+  //       attributes: [
+
+  //         // get count of courses status PUBLISHED
+  //         [
+  //           this.sequelize.fn(
+  //             'COUNT',
+  //             this.sequelize.literal(
+  //               `CASE WHEN status = 'Published' THEN 1 END`, // because count calc the null values as well, so we use case when to count only the published courses
+  //             ),
+  //           ),
+  //           'published_courses',
+  //         ],
+  //         [
+  //           // get count of students enrolled in the instructor's courses
+  //           this.sequelize.fn(
+  //             'COUNT',
+  //             this.sequelize.fn(
+  //               'DISTINCT',
+  //               this.sequelize.col('enrollments.userId'),
+  //             ),
+  //           ),
+  //           'total_students',
+  //         ],
+  //         [
+  //           // get the AVG rating of the instructor's courses
+  //           this.sequelize.fn(
+  //             'AVG',
+  //             this.sequelize.col('Course->reviews.rating'),
+  //           ),
+  //           'avg_rating',
+  //         ]
+  //       ],
+  //       include: [
+  //         {
+  //           model: Enrollment,
+  //           as: 'enrollments',
+  //           attributes: [],
+  //           required: false,
+  //         },
+  //         {
+  //           model: Payment,
+  //           as: 'payments',
+  //           where: {
+  //             type: PurchasableTypes.COURSE,
+  //             itemId: this.sequelize.col('Course.id'),
+  //           },
+  //           attributes: [
+  //             [
+  //               this.sequelize.fn('SUM', this.sequelize.col('payments.amount')),
+  //               'total_earnings',
+  //             ],
+  //           ],
+  //           required: false,
+  //         },
+
+  //       ],
+  //       raw: true,
+  //       nest: true,
+  //     }),
+  //   );
+  // }
+
+  countOfActiveCoursesByInstructor(instructorId: number) {
+    return this.handleException.handle(async () => {
+      return this.courseModel.count({
+        where: { instructerId: instructorId, status: CourseStatus.PUBLISHED },
+      });
+    });
   }
 }

@@ -15,16 +15,19 @@ export class SectionService {
     @InjectConnection() private sequlize: Sequelize,
   ) {}
 
-  async create(courseId: number, sectionDto: CreateSectionDto) {
-    const course = await this.courseRepository.isExist(courseId);
+  async create(
+    instructerId: number,
+    courseId: number,
+    sectionDto: CreateSectionDto,
+  ) {
+    const course = await this.courseRepository.findCourseToSection(
+      courseId,
+      instructerId,
+    );
     if (!course) throw new NotFoundException('course not found');
 
-    const section = await this.sectionRepository.create(sectionDto , courseId);
+    const section = await this.sectionRepository.create(sectionDto, courseId);
 
     return section;
   }
-
-  
-
-
 }

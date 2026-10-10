@@ -17,6 +17,9 @@ import { DbModule } from './db/db.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { InstructerModule } from './instructer/instructer.module';
+import { UserActivityModule } from './user_activity/user_activity.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -41,6 +44,12 @@ import { InstructerModule } from './instructer/instructer.module';
     CheckoutModule,
     GamificationModule,
     InstructerModule,
+    UserActivityModule,
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver:ApolloDriver,
+      typePaths:['./**/*.graphql'],
+      context: ({ req }) => ({ req }),
+    })
   ],
   controllers: [],
   providers: [

@@ -5,6 +5,7 @@ import {
   HttpException,
   Injectable,
   Logger,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { CourseRepository } from '../repo/course.repo';
@@ -21,6 +22,10 @@ import { checkCourseBeforeReview } from '../helper/course.validate';
 import { FinalRepo } from 'src/assessment2/final/repo/final.repo';
 import { EnrollmentRepository } from '../enrollment/repo/enrollment.repo';
 import { RedisService } from 'src/redis/redis.service';
+import { LessonRepository } from 'src/lesson/repo/lesson.repo';
+import { CourseProgressService } from '../progress/course-progress.service';
+import { InstructerRepository } from 'src/instructer/repo/instructor';
+import { PaymentService } from 'src/payment/payment.service';
 
 @Injectable()
 export class CourseService {
@@ -32,6 +37,8 @@ export class CourseService {
     private readonly courseRepository: CourseRepository,
     private readonly finalRepo: FinalRepo,
     private readonly redisService: RedisService,
+    private readonly courseProgressService: CourseProgressService,
+    private readonly paymentService: PaymentService,
   ) {}
 
   async saveAsDraft(dto: CreateCourseDto, instructorId: number) {
@@ -99,8 +106,8 @@ export class CourseService {
     return course;
   }
 
-  async addPrice(courseId: number, price: number) {
-    await this.courseRepository.update(courseId, { price });
+  async addPrice(instructerId: number, courseId: number, price: number) {
+    await this.courseRepository.createPrice(courseId, { price }, instructerId);
   }
 
   private async validateCourseTitle(title: string, instructorId: number) {
@@ -134,7 +141,7 @@ export class CourseService {
         description: course.description,
         level: course.level,
         category: course.category,
-        instructer_name: course.instructer.name,
+        instructer_name: course.instructor.user.name,
         course_duration: course['course_duration'] as number,
       };
     });
@@ -146,31 +153,45 @@ export class CourseService {
 
   // send course to admin for review
   async sendCourseForReview(courseId: number, instructorId: number) {
-    const course = await this.courseRepository.findById(courseId);
+    const course = await this.courseRepository.findForReviewById(courseId);
 
     if (!course) throw new NotFoundException('Course not found');
 
-    if (course.instructerId !== instructorId) {
+    if (!course.instructor.stripeAccountId)
+      throw new ForbiddenException(
+        'connect your stripe account first to send course for review',
+      );
+    if (course.instructerId !== instructorId)
       throw new BadRequestException(
         'You are not authorized to send this course for review',
       );
-    }
 
-    if (course.status !== CourseStatus.DRAFT) {
-      throw new BadRequestException(
-        'Only courses in draft status can be sent for review',
+    if (course.sections.length === 0)
+      throw new NotAcceptableException('at least one section in course');
+
+    await this.paymentService.checkInstructerCapability(instructorId);
+
+    if (
+      course.status === CourseStatus.DRAFT ||
+      course.status === CourseStatus.REJECTED
+    ) {
+      await checkCourseBeforeReview(course);
+      await this.courseRepository.updateStatus(
+        courseId,
+        CourseStatus.PENDING_REVIEW,
       );
     }
-
-    await checkCourseBeforeReview(course);
-
-    await this.courseRepository.update(courseId, {
-      status: CourseStatus.PENDING_REVIEW,
-    });
+    throw new BadRequestException(
+      'Course is already sent for review or published, cannot send again',
+    );
   }
 
   // update course status by admin
-  async updateCourseStatus(courseId: number, dto: updateCourseStatusDto) {
+  async updateCourseStatus(
+    adminId: number,
+    courseId: number,
+    dto: updateCourseStatusDto,
+  ) {
     const course =
       await this.courseRepository.findByIdAndCourseReject(courseId);
     if (!course) throw new NotFoundException('Course not found');
@@ -188,9 +209,9 @@ export class CourseService {
               course.courseReject.id,
               transaction,
             ),
-            this.courseRepository.update(
+            this.courseRepository.updateStatus(
               courseId,
-              { status: CourseStatus.PUBLISHED },
+              CourseStatus.PUBLISHED,
               transaction,
             ),
           ]);
@@ -202,10 +223,9 @@ export class CourseService {
           );
         }
       } else if (!course.courseReject && dto.action === 'approve') {
-        await this.courseRepository.update(
+        await this.courseRepository.updateStatus(
           courseId,
-          { status: CourseStatus.PUBLISHED },
-          transaction,
+          CourseStatus.PUBLISHED,
         );
       } else if (!course.courseReject && dto.action === 'reject') {
         await this.courseRepository.createCourseReject(
@@ -214,10 +234,9 @@ export class CourseService {
           transaction,
         );
 
-        await this.courseRepository.update(
+        await this.courseRepository.updateStatus(
           courseId,
-          { status: CourseStatus.REJECTED },
-          transaction,
+          CourseStatus.REJECTED,
         );
       }
     });
@@ -254,7 +273,6 @@ export class CourseService {
     return courses;
   }
 
- 
   // get all sections and final exam for a course for enrolled user
   async getCoursePreview(courseId: number, userId: number) {
     const courseExist =
@@ -348,21 +366,24 @@ export class CourseService {
         transaction,
       );
 
-      if (!deleteCourse) {
+      if (!deleteCourse)
         throw new NotFoundException(
           'Course not found or you are not authorized to delete this course',
         );
-      }
 
-      await this.courseRepository.update(
+      await this.courseRepository.updateStatus(
         courseId,
-        {
-          status: CourseStatus.DELETED,
-        },
+
+        CourseStatus.DELETED,
+
         transaction,
       );
 
       return true;
     });
+  }
+
+  async verifyCourseStudentCompleted(courseId: number, userId: number) {
+    return this.courseProgressService.verifyCourseProgress(courseId, userId);
   }
 }

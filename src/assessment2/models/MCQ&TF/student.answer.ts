@@ -24,6 +24,7 @@ import { Attempt } from '../attempt';
       unique: true,
       fields: ['attemptId', 'questionId'],
     },
+    { fields: ['attemptId'] },
   ],
 })
 export class StudentAnswer extends Model<

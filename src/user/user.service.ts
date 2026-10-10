@@ -20,6 +20,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { queueNames } from 'src/common/queue';
 import { Queue } from 'bullmq';
 import { EmailProvider } from 'src/common/providers/email.provider';
+import { UserJobs } from './shared/const/user.job';
 
 @Injectable()
 export class UserService {
@@ -61,7 +62,7 @@ export class UserService {
       this.logger.error("can't delete the user photo ");
       await this.userQueue
         .add(
-          'delete_photo',
+          UserJobs.DELETE_PROFILE_PHOTO,
           { userId },
           {
             jobId: `delete-user-photo:${userId}`,
@@ -126,4 +127,13 @@ export class UserService {
 
     return true;
   }
+
+  @Cron('0 0 * * *')
+  async deleteExpired() {
+    await this.otpRepository.deleteExpired();
+  }
+
+
+  
+
 }

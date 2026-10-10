@@ -1,0 +1,5 @@
+export enum YEARS_OF_EXPERIENCE {
+  THREE_FIVE_YEARS = '3-5',
+  FIVE_TEN_YEARS = '5-10',
+  TEN_PLUS_YEARS = '+10',
+}

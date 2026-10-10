@@ -35,6 +35,12 @@ export class MeilisearchService implements OnModuleInit {
     ]);
   }
 
+  async setupUsersIndex() {
+    const index = this.client.index('users');
+    await index.updateSearchableAttributes(['name', 'email', 'role']);
+    await index.updateFilterableAttributes(['role']);
+  }
+
   getIndex(indexName: string) {
     return this.client.index(indexName);
   }

@@ -4,6 +4,7 @@ import {
   DataType,
   HasMany,
   HasOne,
+  Index,
   Model,
   Table,
 } from 'sequelize-typescript';
@@ -22,10 +23,16 @@ import { Reward } from 'src/gamification/reward/entities/reward.entity';
 import { UserBadge } from 'src/gamification/badge/entities/badge.user';
 import { UserQuest } from 'src/gamification/quest/entities/user.quest';
 import { Streak } from 'src/gamification/streak/entities/streak.entity';
+import { Leaderboard } from 'src/gamification/leaderboard/entities/leaderboard.entity';
 
 @Table({
   tableName: 'users',
   timestamps: true,
+  indexes: [
+    {
+      fields: ['email', 'role', 'isActivited'],
+    },
+  ],
 
   // defaultScope: {
   //   attributes: { exclude: ['password'] },
@@ -91,21 +98,6 @@ export class User extends Model<
   })
   declare bio: CreationOptional<string>;
 
-  // @Column({
-  //   type: DataType.STRING,
-  // })
-  // declare phone: string;
-
-  // @Column({
-  //   type: DataType.STRING,
-  // })
-  // declare Gender: string;
-
-  // @Column({
-  //   type: DataType.DATE,
-  // })
-  // declare dateOfBirth: Date;
-
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
@@ -127,6 +119,8 @@ export class User extends Model<
   declare userBadges: NonAttribute<UserBadge[]>;
   @HasMany(() => UserQuest, { as: 'userQuests' })
   declare userQuests: NonAttribute<UserQuest[]>;
-  @HasOne(() => Streak, { as: 'streak' })
-  declare streak: NonAttribute<Streak>;
+  @HasMany(() => Streak, { as: 'streak' })
+  declare streak: NonAttribute<Streak[]>;
+  @HasOne(() => Leaderboard, { as: 'leaderboard' })
+  declare leaderboard: NonAttribute<Leaderboard>;
 }

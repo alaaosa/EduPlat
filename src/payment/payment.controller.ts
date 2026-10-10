@@ -35,7 +35,7 @@ export class PaymentController {
   @Auth(UserRoles.INSTRUCTOR)
   @Get('stripe/connect')
   connectStripe(@Req() req: Request, @Res() res: Response) {
-    const instructorId = String(req['user'].id);
+    const instructorId = String(req.user.id);
 
     const url =
       'https://connect.stripe.com/oauth/authorize' +
@@ -44,7 +44,7 @@ export class PaymentController {
       `&scope=read_write` +
       `&state=${instructorId}` +
       `&redirect_uri=${encodeURIComponent(
-        'http://localhost:3000/stripe/callback',
+        `${process.env.BASE_URL}/stripe/callback`,
       )}`;
     return res.redirect(url);
   }

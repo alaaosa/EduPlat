@@ -12,12 +12,7 @@ import {
 } from 'sequelize-typescript';
 import { User } from 'src/user/entities/user.entity';
 import { examType } from './MCQ&TF/question';
-
-export enum AttemptStatus {
-  IN_PROGRESS = 'in_progress',
-  FINALIZING = 'finalizing',
-  COMPLETED = 'completed',
-}
+import { AttemptStatus } from '../shared/enum/attempt';
 @Table({
   tableName: 'attempts',
   timestamps: true,
@@ -26,6 +21,15 @@ export enum AttemptStatus {
       unique: true,
       fields: ['examType', 'assessmentId', 'userId'],
     },
+    {
+      fields: ['examType', 'assessmentId', 'userId', 'status'],
+    },
+    {
+      fields: ['status', 'expiresAt'],
+    },
+    {
+      fields:['userId','examType', 'status']
+    }
   ],
 })
 export class Attempt extends Model<
@@ -38,13 +42,13 @@ export class Attempt extends Model<
     primaryKey: true,
   })
   declare id: CreationOptional<number>;
+
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
   })
   declare assessmentId: number;
 
-  /** Server-owned timing. BullMQ only wakes the finalizer; it does not define expiry. */
   @Column({
     type: DataType.DATE,
     allowNull: false,

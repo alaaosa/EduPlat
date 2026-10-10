@@ -60,5 +60,5 @@ export class Streak extends Model<
     type: DataType.DATEONLY,
     allowNull: false,
   })
-  declare lastActivityDate: string;
+  declare date: string;
 }

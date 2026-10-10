@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Attempt, AttemptStatus } from '../models/attempt';
+import { Attempt } from '../models/attempt';
 import { HandleException } from 'src/db/db.service';
 import { CreationAttributes, Op, Transaction } from 'sequelize';
 import { StudentAnswer } from '../models/MCQ&TF/student.answer';
 import { examType } from '../models/MCQ&TF/question';
+import { AttemptStatus } from '../shared/enum/attempt';
 
 type createAttempt = Omit<CreationAttributes<Attempt>, 'userId'>;
 
@@ -129,6 +130,11 @@ export class AttemptRepository {
     );
   }
 
+  /**
+   *
+   * @param now
+   * @returns
+   */
   findExpiredInProgress(now: Date) {
     return this.handlerException.handle(() =>
       this.attemptModel.findAll({
@@ -137,6 +143,26 @@ export class AttemptRepository {
           expiresAt: { [Op.lte]: now },
         },
         attributes: ['id', 'assessmentId', 'userId', 'examType'],
+      }),
+    );
+  }
+
+  /**
+   * @param examType
+   * @param Ids of the quizes
+   * @param userId
+   * @description use this to ensure that user completed all quizes
+   * @returns attempt record with attributes['status']
+   */
+  findCountOfQuizes(examType: examType, Ids: number[], userId: number) {
+    return this.handlerException.handle(async () =>
+      this.attemptModel.count({
+        where: {
+          assessmentId: Ids,
+          examType,
+          userId,
+          status: AttemptStatus.COMPLETED,
+        },
       }),
     );
   }

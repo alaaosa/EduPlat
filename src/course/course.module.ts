@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { CourseService } from './services/course.service';
-import { CourseController } from './course.controller';
+import { CourseController } from './controller/course.controller';
 import { CourseRepository } from './repo/course.repo';
 import { LessonModule } from '../lesson/lesson.module';
 import { Course } from './entities/course.entity';
@@ -16,6 +16,9 @@ import { QuizModule } from '../assessment2/quiz/quiz.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { CouponModule } from './coupon/coupon.module';
 import { ReviewModule } from './review/review.module';
+import { CourseProgressModule } from './progress/course-progress.module';
+import { Video } from 'src/lesson/models/types/video.model';
+import { Quiz } from 'src/assessment2/quiz/entities/quiz.entity';
 
 @Module({
   imports: [
@@ -26,6 +29,8 @@ import { ReviewModule } from './review/review.module';
       CourseRequirement,
       CourseGoal,
       CourseAudience,
+      Video,
+      Quiz,
     ]),
     LessonModule,
     CertificateModule,
@@ -34,6 +39,7 @@ import { ReviewModule } from './review/review.module';
     EnrollmentModule,
     CouponModule,
     ReviewModule,
+    CourseProgressModule,
   ],
   controllers: [CourseController],
   providers: [CourseService, CourseRepository],

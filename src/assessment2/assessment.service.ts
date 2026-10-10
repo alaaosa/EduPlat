@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
+  HttpException,
   Injectable,
   Logger,
   NotFoundException,
@@ -10,7 +12,6 @@ import { ExamTypeService } from 'src/common/services/examtype.service';
 import { examType, Mcq_TF_Question } from './models/MCQ&TF/question';
 import { McqRepository } from './repo/mcq.repo';
 import { AttemptRepository } from './repo/attempt.repo';
-import { AttemptStatus } from './models/attempt';
 import { Sequelize, UniqueConstraintError } from 'sequelize';
 import { InjectConnection } from '@nestjs/sequelize';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -18,6 +19,9 @@ import { queueNames } from 'src/common/queue';
 import { Queue } from 'bullmq';
 import { McqService } from './strategies/mcq.service';
 import EventEmitter2 from 'eventemitter2';
+import { AssessmentEventNames } from './shared/const/event.names';
+import { AttemptStatus } from './shared/enum/attempt';
+import { CourseProgressService } from 'src/course/progress/course-progress.service';
 
 type AssessmentUser = { id: number; name: string };
 
@@ -40,6 +44,7 @@ export class AssessmentService {
     @InjectQueue(queueNames.ASSESSMENT) private readonly assessmentQueue: Queue,
     private readonly mcqService: McqService,
     private readonly attemptRepo: AttemptRepository,
+    private readonly courseProgressService: CourseProgressService,
   ) {}
 
   async startAssessment(
@@ -51,74 +56,107 @@ export class AssessmentService {
     duration: number;
     questions: Mcq_TF_Question[];
   }> {
-    const [exam, questions] = await Promise.all([
-      this.examTypeService.getQuestionsRecord(type, assessmentId),
-      this.mcqRepository.findAllQuestionsByExamId(assessmentId, type),
-    ]);
+    let exam: any;
+    let questions: Mcq_TF_Question[];
+    let duration: number;
+    try {
+      if (type === examType.FINAL) {
+        exam = await this.examTypeService.getAssessmentConfig(
+          type,
+          assessmentId,
+        );
 
-    if (!exam) throw new NotFoundException('Assessment not found');
-    if (questions.length === 0) {
-      throw new NotFoundException('No questions found for this assessment');
-    }
+        if (!exam) throw new NotFoundException('Assessment not found');
+        duration = Number(exam.duration);
+        if (!Number.isFinite(duration) || duration <= 0)
+          throw new ConflictException('Assessment duration is not configured');
 
-    const duration = Number(exam.duration);
-    if (!Number.isFinite(duration) || duration <= 0) {
-      throw new ConflictException('Assessment duration is not configured');
-    }
-
-    let attempt = await this.attemptRepo.findByUserIdAndAssessmentId(
-      user.id,
-      assessmentId,
-      type,
-    );
-
-    if (!attempt) {
-      const startedAt = new Date();
-      const expiresAt = new Date(startedAt.getTime() + duration * 60_000);
-      try {
-        attempt = await this.attemptRepo.createAttempt(
-          {
-            assessmentId,
-            examType: type,
-            status: AttemptStatus.IN_PROGRESS,
-            startedAt,
-            expiresAt,
-          },
+        // if user doesn't ccomplete , this will send exception
+        await this.courseProgressService.assertFinalEligible(
+          exam.courseId,
           user.id,
         );
-      } catch (error) {
-        if (!(error instanceof UniqueConstraintError)) throw error;
-        attempt = await this.attemptRepo.findByUserIdAndAssessmentId(
-          user.id,
+
+        questions = await this.mcqRepository.findAllQuestionsByExamId(
           assessmentId,
           type,
         );
-        if (!attempt) throw error;
+      } else {
+        [exam, questions] = await Promise.all([
+          this.examTypeService.getAssessmentConfig(type, assessmentId),
+          this.mcqRepository.findAllQuestionsByExamId(assessmentId, type),
+        ]);
+        duration = Number(exam?.duration);
+        if (!Number.isFinite(duration) || duration <= 0)
+          throw new ConflictException('Assessment duration is not configured');
       }
-    }
+      
+      if (!exam) throw new NotFoundException('Assessment not found');
 
-    if (
-      attempt.status === AttemptStatus.IN_PROGRESS &&
-      attempt.expiresAt <= new Date()
-    ) {
-      await this.expireAttempt(attempt.id, assessmentId, user, type);
-      throw new ConflictException('Your attempt has expired');
-    }
-    if (attempt.status === AttemptStatus.COMPLETED) {
-      throw new ConflictException('Your attempt is already completed');
-    }
-    if (attempt.status === AttemptStatus.FINALIZING) {
-      throw new ConflictException('Your attempt is being finalized');
-    }
+      if (questions.length === 0) {
+        throw new NotFoundException('No questions found for this assessment');
+      }
 
-    await this.scheduleExpiration(
-      attempt.id,
-      assessmentId,
-      user,
-      type,
-      attempt.expiresAt,
-    );
-    return { attemptId: attempt.id, duration, questions };
+      let attempt = await this.attemptRepo.findByUserIdAndAssessmentId(
+        user.id,
+        assessmentId,
+        type,
+      );
+
+      if (!attempt) {
+        const startedAt = new Date();
+        const expiresAt = new Date(startedAt.getTime() + duration * 60_000);
+
+        attempt = await this.attemptRepo
+          .createAttempt(
+            {
+              assessmentId,
+              examType: type,
+              status: AttemptStatus.IN_PROGRESS,
+              startedAt,
+              expiresAt,
+            },
+            user.id,
+          )
+          .catch(async (error) => {
+            if (!(error instanceof UniqueConstraintError)) throw error;
+            attempt = await this.attemptRepo.findByUserIdAndAssessmentId(
+              user.id,
+              assessmentId,
+              type,
+            );
+            if (!attempt) throw error;
+            return attempt;
+          });
+      }
+
+      if (
+        attempt.status === AttemptStatus.IN_PROGRESS &&
+        attempt.expiresAt <= new Date()
+      ) {
+        await this.expireAttempt(attempt.id, assessmentId, user, type);
+        throw new ConflictException('Your attempt has expired');
+      }
+      if (attempt.status === AttemptStatus.COMPLETED) 
+        throw new ConflictException('Your attempt is already completed');
+      
+      if (attempt.status === AttemptStatus.FINALIZING) 
+        throw new ConflictException('Your attempt is being finalized');
+      
+
+      await this.scheduleExpiration(
+        attempt.id,
+        assessmentId,
+        user,
+        type,
+        attempt.expiresAt,
+      );
+
+      return { attemptId: attempt.id, duration, questions };
+    } catch (err) {
+      this.logger.error("can't start thr exam");
+      throw new BadRequestException((err as Error).message);
+    }
   }
 
   async saveAnswer(
@@ -154,9 +192,9 @@ export class AssessmentService {
         answer.questionId,
         transaction,
       );
-      if (existing && answer.revision <= existing.revision) {
+      if (existing && answer.revision <= existing.revision)
         throw new ConflictException('Stale answer revision');
-      }
+
       if (!existing && answer.revision !== 0) {
         throw new ConflictException('Answer revision must start at zero');
       }
@@ -335,13 +373,15 @@ export class AssessmentService {
   ) {
     try {
       if (type === examType.FINAL) {
-        this.eventEmitter2.emit('assessmentGraded', {
+        this.eventEmitter2.emit(AssessmentEventNames.FINISH_FINAL, {
           success: score >= Number(exam.passingScore),
           courseName: exam.course?.title,
           instructorName: exam.course?.instructer?.name,
           numOfHours: exam.course?.numOfHours,
           studentName: user.name,
+          id: user.id,
         });
+        return;
       }
       this.eventEmitter2.emit('attempt.graded', {
         attemptId,

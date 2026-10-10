@@ -22,7 +22,7 @@ export enum CourseStatus {
   ARCHIVED = 'Archived',
   REJECTED = 'Rejected',
   PENDING_REVIEW = 'Pending_Review',
-  DELETED = 'deleted',
+  DELETED = 'deleted', // soft delete
 }
 
 export enum CourseLevel {

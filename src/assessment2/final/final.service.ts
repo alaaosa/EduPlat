@@ -1,13 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { FinalRepo } from './repo/final.repo';
 import { Sequelize, Transaction } from 'sequelize';
 import { InjectConnection } from '@nestjs/sequelize';
 import { McqService } from '../strategies/mcq.service';
 import { CreateFinalDto } from './dto/create-final.dto';
 import { examType } from '../models/MCQ&TF/question';
-import { choiceDto } from '../dto/mcq&tf';
-import { AttemptRepository } from '../repo/attempt.repo';
-import { AttemptStatus } from '../models/attempt';
+import { CourseRepository } from 'src/course/repo/course.repo';
 
 @Injectable()
 export class FinalService {
@@ -15,7 +17,7 @@ export class FinalService {
     private readonly finalRepo: FinalRepo,
     @InjectConnection() private sequlize: Sequelize,
     private readonly mcq_tf_Service: McqService,
-    private readonly attemptRepository: AttemptRepository,
+    private readonly courseRepository: CourseRepository,
   ) {}
 
   /**
@@ -25,7 +27,13 @@ export class FinalService {
    *  @returns  create final exam with its questions & answers for a specific course
    */
 
-  create(dto: CreateFinalDto, courseId: number) {
+  async create(dto: CreateFinalDto, courseId: number, instructerId: number) {
+    
+    const course =
+      await this.courseRepository.findInstructerIdFromCourse(courseId);
+    if (!course || course.instructerId !== instructerId)
+      throw new UnauthorizedException('not allowed');
+
     const { mcq_tf_questions, ...details } = dto;
     return this.sequlize.transaction(async (transaction) => {
       const final = await this.finalRepo.create(details, courseId, transaction);
@@ -39,5 +47,4 @@ export class FinalService {
       return final;
     });
   }
- 
 }

@@ -11,6 +11,7 @@ import { Course } from 'src/course/entities/course.entity';
 import { Enrollment } from 'src/course/enrollment/entities/enrollment.entity';
 import { Progress } from '../models/lesson.user';
 import { CourseRepository } from 'src/course/repo/course.repo';
+import { model } from 'mongoose';
 
 @Injectable()
 export class LessonRepository {
@@ -18,8 +19,7 @@ export class LessonRepository {
     private handleException: HandleException,
 
     @InjectModel(Lesson) private lessonModel: typeof Lesson,
-    private readonly videoRepository: VideoRepository,
-    @InjectConnection() private readonly sequelize: Sequelize,
+    @InjectConnection() private readonly sequlize: Sequelize,
   ) {}
 
   bulkCreate(
@@ -174,10 +174,7 @@ export class LessonRepository {
    * @description  
    */
 
-  findLessonsForEnrolledUser(
-   
-    lessonId: number,
-  ) {
+  findLessonsForEnrolledUser(lessonId: number) {
     return this.handleException.handle(async () =>
       this.lessonModel.findOne({
         where: { id: lessonId },
@@ -185,7 +182,7 @@ export class LessonRepository {
         include: [
           {
             model: Section,
-            as:'section',
+            as: 'section',
             attributes: ['id'],
             required: true,
             include: [
@@ -210,7 +207,15 @@ export class LessonRepository {
           {
             model: Section,
             as: 'section',
-            attributes: ['id', 'courseId'],
+            attributes: [],
+            include:[
+              {
+                model:Course , 
+                as:'course',
+                attributes:['id' , 'instructerId'],
+                required : true
+              }
+            ]
           },
         ],
       });
@@ -224,4 +229,6 @@ export class LessonRepository {
       });
     });
   }
+
+ 
 }

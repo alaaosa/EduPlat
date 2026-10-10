@@ -43,14 +43,12 @@ export class UserState extends Model<
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
     defaultValue: 0,
   })
   declare courseCompleted: CreationOptional<number>;
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
     defaultValue: 0,
   })
   declare xp: CreationOptional<number>;

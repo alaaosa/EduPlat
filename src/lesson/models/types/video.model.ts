@@ -21,10 +21,11 @@ import { Progress } from '../lesson.user';
   timestamps: true,
   indexes: [
     {
+      unique: true,
       fields: ['lessonId'],
     },
   ],
-})
+}) 
 export class Video extends Model<
   InferAttributes<Video>,
   InferCreationAttributes<Video>

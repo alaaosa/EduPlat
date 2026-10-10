@@ -16,4 +16,23 @@ export class GroupRepository {
   objectId(value: string) {
     return new Types.ObjectId(value);
   }
+
+  async findGroupNamesByUserId(userId: number): Promise<{ name: string }[]> {
+    const memberships = await this.memberships
+      .find({ userId })
+      .select('groupId -_id')
+      .lean()
+      .exec();
+    const groupIds = memberships.map(({ groupId }) => groupId);
+
+    if (groupIds.length === 0) return [];
+
+    const groups = await this.groups
+      .find({ _id: { $in: groupIds } })
+      .select('name -_id')
+      .lean()
+      .exec();
+
+    return groups.map(({ name }) => ({ name }));
+  }
 }

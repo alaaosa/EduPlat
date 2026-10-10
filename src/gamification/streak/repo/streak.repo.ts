@@ -15,50 +15,60 @@ export class StreakRepository {
   async recordDailyActivity(userId: number, transaction: Transaction) {
     return this.exceptionHandler.handle(async () => {
       const today = formatInTimeZone(new Date(), 'Africa/Cairo', 'yyyy-MM-dd');
-      const streak = await this.streakModel.findOne({
-        where: { userId },
+      const todaysActivity = await this.streakModel.findOne({
+        where: { userId, date: today },
         transaction,
         lock: transaction ? transaction.LOCK.UPDATE : undefined,
       });
-
-      if (!streak) {
-        await this.streakModel.create(
-          {
-            userId,
-            lastActivityDate: today,
-            currentStreak: 1,
-            longestStreak: 1,
-          },
-          { transaction },
-        );
-      }
-
-      if (streak!.lastActivityDate === today) {
-        return streak;
-      }
+      if (todaysActivity) return todaysActivity;
 
       const yesterday = formatInTimeZone(
         subDays(new Date(), 1),
         'Africa/Cairo',
         'yyyy-MM-dd',
       );
+      const latestActivity = await this.streakModel.findOne({
+        where: { userId },
+        attributes: ['date', 'currentStreak', 'longestStreak'],
+        order: [['date', 'DESC']],
+        transaction,
+        lock: transaction ? transaction.LOCK.UPDATE : undefined,
+      });
+      const currentStreak =
+        latestActivity?.date === yesterday
+          ? latestActivity.currentStreak + 1
+          : 1;
+      const longestStreak = Math.max(
+        latestActivity?.longestStreak ?? 0,
+        currentStreak,
+      );
 
-      if (streak!.lastActivityDate === yesterday) {
-        streak!.currentStreak += 1;
-
-        streak!.longestStreak = Math.max(
-          streak!.longestStreak,
-          streak!.currentStreak,
-        );
-      } else {
-        streak!.currentStreak = 1;
-      }
-
-      streak!.lastActivityDate = today;
-
-      await streak!.save({ transaction });
+      return this.streakModel.create(
+        { userId, date: today, currentStreak, longestStreak },
+        { transaction },
+      );
     });
   }
 
+  getCurrentStreak(userId: number) {
+    return this.exceptionHandler.handle(async () => {
+      const today = formatInTimeZone(new Date(), 'Africa/Cairo', 'yyyy-MM-dd');
+      const yesterday = formatInTimeZone(
+        subDays(new Date(), 1),
+        'Africa/Cairo',
+        'yyyy-MM-dd',
+      );
+      const latestActivity = await this.streakModel.findOne({
+        where: { userId },
+        attributes: ['date', 'currentStreak'],
+        order: [['date', 'DESC']],
+      });
+
+      if (!latestActivity) return null;
+      if (latestActivity.date !== today && latestActivity.date !== yesterday)
+        return 0;
+      return latestActivity.currentStreak;
+    });
+  }
 
 }

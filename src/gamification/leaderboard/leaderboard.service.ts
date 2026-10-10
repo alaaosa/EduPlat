@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { LeaderboardRepository } from './repo/leaderboard.repo';
 import { LeaderboardDTO } from './dto/leaderboard.dto';
 import { RedisService } from 'src/redis/redis.service';
@@ -7,6 +11,7 @@ import { UserRepository } from 'src/user/repo/user';
 
 @Injectable()
 export class LeaderboardService {
+  private readonly logger = new Logger(LeaderboardService.name);
   constructor(
     private readonly leaderboardRepository: LeaderboardRepository,
     private readonly redisService: RedisService,
@@ -64,7 +69,7 @@ export class LeaderboardService {
   }
 
   async getRankOfUser(userId: number) {
-    const [rank, xp] = await Promise.all([
+    let [rank, xp] = await Promise.all([
       this.redisService.client.zrevrank(
         LeaderboardKeys.GLOBAL,
         userId.toString(),
@@ -73,7 +78,10 @@ export class LeaderboardService {
         LeaderboardKeys.GLOBAL,
         userId.toString(),
       ),
-    ]);
+    ]).catch(async (err) => {
+      this.logger.error("can't get the rank of user");
+      throw new InternalServerErrorException("can't get the rank of user", err);
+    });
 
     const position = rank !== null ? rank + 1 : null;
     const level =

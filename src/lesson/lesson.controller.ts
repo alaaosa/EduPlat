@@ -10,16 +10,20 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { LessonService } from './lesson.service';
+import { LessonService } from './services/lesson.service';
 import type { Request } from 'express';
 import { Auth } from 'src/common/decorators/decomposition.decorater';
 import { UserRoles } from 'src/common/enum';
 import { LessonDto } from './dto/lesson.dto';
 import { UserEnrolled } from 'src/common/guard/lesson.guard';
+import { VideoHandler } from './services/video.handler';
 
 @Controller()
 export class LessonController {
-  constructor(private readonly lessonService: LessonService) {}
+  constructor(
+    private readonly lessonService: LessonService,
+    private readonly videoHandler: VideoHandler,
+  ) {}
 
   @Auth(UserRoles.USER)
   @Get('section/:sectionId')
@@ -79,6 +83,21 @@ export class LessonController {
     return {
       success: true,
       lesson,
+    };
+  }
+
+  @Auth(UserRoles.INSTRUCTOR)
+  @Post('lesson/:lessonId/upload-url')
+  async uploadURl(
+    @Param('lessonId', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ) {
+    const url = await this.videoHandler.createUrl(req.user.id, id);
+
+    return {
+      success: true,
+      message: 'url created successfully',
+      url,
     };
   }
 }

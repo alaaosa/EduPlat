@@ -18,6 +18,7 @@ import { AssessmentGateway } from './gateway/wsocket';
 import { AssessmentWorker } from './gateway/assessment.worker';
 import { AssessmentRecoveryService } from './gateway/assessment.recovery.service';
 import { AssessmentController } from './assessment.controller';
+import { CourseProgressModule } from 'src/course/progress/course-progress.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AssessmentController } from './assessment.controller';
       Final,
       Quiz,
     ]),
+    CourseProgressModule,
   ],
   controllers: [AssessmentController],
   providers: [

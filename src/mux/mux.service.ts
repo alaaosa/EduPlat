@@ -1,13 +1,17 @@
 import Mux from '@mux/mux-node';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { event } from 'eventemitter2';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { VideoStatus } from './enum/video';
-import { LessonService } from 'src/lesson/lesson.service';
-import { VideoHandler } from 'src/lesson/handlers/video.handler';
 import { LessonRepository } from 'src/lesson/repo/lesson.repo';
 import { CourseRepository } from 'src/course/repo/course.repo';
 import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
+import { VideoHandler } from 'src/lesson/services/video.handler';
 
 @Injectable()
 export class MuxService {
@@ -20,17 +24,25 @@ export class MuxService {
     @InjectConnection() private sequlize: Sequelize,
   ) {}
 
-  async createUploadUrl(lessonId: number) {
-    const courseId =
+  async createUploadUrl(instructerId: number, lessonId: number) {
+    const lesson_details =
       await this.lessonRepository.getCourseIdByLessonId(lessonId);
 
-    if (!courseId) throw new NotFoundException(`Course not found for lessonId`);
+    if (!lesson_details)
+      throw new NotFoundException(`Course not found for lessonId`);
+    const courseId = lesson_details.section.course.id;
+
+    if (lesson_details.section.course.instructerId !== instructerId)
+      throw new UnauthorizedException('not allowed ');
 
     const upload = await this.mux.video.uploads.create({
       new_asset_settings: {
         playback_policies: ['signed'],
         encoding_tier: 'baseline',
-        passthrough: JSON.stringify({ lessonId, courseId }),
+        passthrough: JSON.stringify({
+          lessonId,
+          courseId,
+        }),
       },
       cors_origin: '*',
     });

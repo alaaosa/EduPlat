@@ -28,8 +28,12 @@ export class ExamTypeService {
     return this.examLookup[type](id);
   }
 
+  getAssessmentConfig(type: examType, id: number) {
+    return this.examConfigLookup[type](id);
+  }
+
   private readonly examConfigLookup: Record<examType, (id: number) => Promise<any>> = {
     [examType.QUIZ]: (id) => this.quizRepository.findConfigurationById(id),
-    [examType.FINAL]: (id) => this.finalRepository.findFinalById(id),
+    [examType.FINAL]: (id) => this.finalRepository.findConfigurationById(id),
   };
 }

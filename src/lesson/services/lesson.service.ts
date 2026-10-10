@@ -4,21 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LessonRepository } from './repo/lesson.repo';
-import {
-  FindLessonsDto,
-  findLessonsForEnrolledUsersDTO,
-  LessonDto,
-} from './dto/lesson.dto';
+import { LessonRepository } from '../repo/lesson.repo';
+import { LessonDto } from '../dto/lesson.dto';
 import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize';
 import { CourseRepository } from 'src/course/repo/course.repo';
-import { EnrollmentRepository } from 'src/course/enrollment/repo/enrollment.repo';
-import { MuxService } from 'src/mux/mux.service';
-import { LessonType } from './shared/enum/lesson.type';
-import { Lesson } from './models/lesson.model';
-import { VideoHandler } from './handlers/video.handler';
-import { LessonHandler } from './handler/lesson';
+import { LessonHandler } from '../handler/lesson';
 
 @Injectable()
 export class LessonService {
@@ -26,8 +17,6 @@ export class LessonService {
     @InjectConnection() private sequlize: Sequelize,
     private lessonRepository: LessonRepository,
     private courseRepository: CourseRepository,
-    private readonly enrollmentRepository: EnrollmentRepository,
-    private readonly muxService: MuxService,
     private readonly lessonHandler: LessonHandler,
   ) {}
 
@@ -88,8 +77,6 @@ export class LessonService {
 
     return this.lessonHandler.getLesson(lesson.type, lessonId, userId);
   }
-
-
 
   // update lesson preview by instructer
   async updateLessonPreview(

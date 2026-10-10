@@ -106,11 +106,11 @@ export class McqService {
       // if (!examQuestionIds.includes(studentAnswer.questionId))
 
       const correctAnswerId = examMap.get(studentAnswer.questionId);
-      if (correctAnswerId === undefined) {
+      if (correctAnswerId === undefined) 
         throw new NotFoundException(
           'there is a qustion or alot not included this exam',
         );
-      }
+      
       if (studentAnswer.answerId === correctAnswerId) {
         correctAnswers++;
       }

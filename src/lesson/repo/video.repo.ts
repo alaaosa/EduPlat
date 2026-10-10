@@ -25,7 +25,7 @@ export class VideoRepository {
     transaction?: Transaction,
   ) {
     return this.handleException.handle(async () => {
-      await this.videoModel.create(video, { transaction });
+      await this.videoModel.upsert(video, { transaction });
     });
   }
 
@@ -57,13 +57,10 @@ export class VideoRepository {
         transaction,
       });
 
-      if (!video) {
-        throw new NotFoundException('Video not found');
-      }
+      if (!video) throw new NotFoundException('Video not found');
 
-      if (progress < 0 || progress > video.duration) {
+      if (progress < 0 || progress > video.duration)
         throw new BadRequestException('Invalid progress');
-      }
 
       const completed = progress >= video.duration * 0.8;
 
@@ -104,6 +101,18 @@ export class VideoRepository {
             required: false,
           },
         ],
+      }),
+    );
+  }
+
+  findCountCompleted(
+    userId: number,
+    videoIds: number[],
+    completed: boolean = true,
+  ) {
+    return this.handleException.handle(async () =>
+      this.progressModel.count({
+        where: { completed, videoId: videoIds, userId },
       }),
     );
   }

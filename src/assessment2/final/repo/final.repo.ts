@@ -47,7 +47,7 @@ export class FinalRepo {
   findFinalById(finalId: number, transaction?: Transaction) {
     return this.handlerException.handle(async () => {
       return this.finalModel.findByPk(finalId, {
-        attributes: ['id', 'passingScore', 'duration'],
+        attributes: ['id', 'courseId', 'passingScore', 'duration'],
         include: [
           {
             model: Mcq_TF_Question,
@@ -79,6 +79,14 @@ export class FinalRepo {
         transaction,
       });
     });
+  }
+
+  findConfigurationById(finalId: number) {
+    return this.handlerException.handle(() =>
+      this.finalModel.findByPk(finalId, {
+        attributes: ['id', 'courseId', 'duration'],
+      }),
+    );
   }
 
   findFinalByCourseId(courseId: number, transaction?: Transaction) {

@@ -30,6 +30,9 @@ import type {
 } from 'sequelize';
 import { CourseReject } from './course.reject';
 import { Review } from '../review/entities/review.entity';
+import { Progress } from './progress';
+import { Payment } from 'src/payment/entities/payment.entity';
+import { Instructer } from 'src/instructer/entities/instructer';
 // slug is stored as string
 @Table({
   tableName: 'courses',
@@ -61,11 +64,13 @@ export class Course extends Model<
 
   @Column({
     type: DataType.STRING,
+    allowNull:false
   })
   declare title: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull:false
   })
   declare slug: string;
 
@@ -79,14 +84,7 @@ export class Course extends Model<
   })
   declare description: string;
 
-  @BelongsTo(() => User, {
-    as: 'instructer',
-    foreignKey: 'instructerId',
-    onDelete: 'SET NULL',
-  })
-  declare instructer: NonAttribute<User>;
-
-  @ForeignKey(() => User)
+  @ForeignKey(() => Instructer)
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
@@ -124,7 +122,7 @@ export class Course extends Model<
     },
     defaultValue: CourseStatus.DRAFT,
   })
-  declare status: string;
+  declare status: CourseStatus;
 
   @Column({
     type: DataType.STRING,
@@ -162,8 +160,6 @@ export class Course extends Model<
   })
   declare total_duration: CreationOptional<number>;
 
-
-
   @Column({
     type: DataType.INTEGER,
     defaultValue: 0,
@@ -172,7 +168,13 @@ export class Course extends Model<
 
   //////////////////////////////
 
-  @HasMany(() => Section, { as: 'sections'   })
+  @BelongsTo(() => Instructer, {
+    as: 'instructor',
+    foreignKey: 'instructerId',
+  })
+  declare instructor: NonAttribute<Instructer>;
+
+  @HasMany(() => Section, { as: 'sections' })
   declare sections: NonAttribute<Section[]>;
 
   @HasMany(() => CourseRequirement)
@@ -191,8 +193,14 @@ export class Course extends Model<
   @HasOne(() => CourseReject, { as: 'courseReject' })
   declare courseReject: NonAttribute<CourseReject>;
 
-  @HasMany(() => Review, { as: 'reviews' , onDelete: 'CASCADE'  })
+  @HasMany(() => Review, { as: 'reviews', onDelete: 'CASCADE' })
   declare reviews: NonAttribute<Review[]>;
+
+  @HasMany(() => Progress, { as: 'progresses' })
+  declare progresses: NonAttribute<Progress[]>;
+
+  @HasMany(() => Payment, { as: 'payments' })
+  declare payments: NonAttribute<Payment[]>;
 
   @DeletedAt
   declare deletedAt: CreationOptional<Date | null>;

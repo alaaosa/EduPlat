@@ -20,4 +20,9 @@ export class StreakService {
       return userStreak;
     });
   }
+
+  getCurrentStreak(userId: number) {
+    return this.streakRepository.getCurrentStreak(userId);
+  }
+
 }

@@ -13,6 +13,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Course } from './course.entity';
+import { model } from 'mongoose';
 
 @Table({
   tableName: 'course_errors',
@@ -47,6 +48,6 @@ export class CourseReject extends Model<
   })
   declare courseId: number;
 
-  @BelongsTo(() => Course, { as: 'course' })
+  @BelongsTo(() => Course, { as: 'course', foreignKey: 'courseId' })
   declare course: NonAttribute<Course>;
 }

@@ -53,7 +53,7 @@ export class Progress extends Model<
   @BelongsTo(() => User, { as: 'user' })
   declare user: NonAttribute<User>;
 
-  @BelongsTo(() => Course, { as: 'course' })
+  @BelongsTo(() => Course, { as: 'course', foreignKey: 'courseId' })
   declare course: NonAttribute<Course>;
 
   @Column({
@@ -62,4 +62,11 @@ export class Progress extends Model<
     defaultValue: 0,
   })
   declare progressPercentage: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  declare completed: boolean;
 }

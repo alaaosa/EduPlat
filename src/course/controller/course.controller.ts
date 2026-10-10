@@ -11,11 +11,11 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { CourseService } from './services/course.service';
+import { CourseService } from '../services/course.service';
 import {
   CreateCourseDto,
   updateCourseStatusDto,
-} from './dto/create-course.dto';
+} from '../dto/create-course.dto';
 import { Auth } from 'src/common/decorators/decomposition.decorater';
 import { UserRoles } from 'src/common/enum';
 import type { Request } from 'express';
@@ -35,8 +35,9 @@ export class CourseController {
   addPrice(
     @Param('courseId', ParseIntPipe) courseId: number,
     @Body('price') price: number,
+    @Req() req: Request,
   ) {
-    return this.courseService.addPrice(courseId, price);
+    return this.courseService.addPrice(req.user.id, courseId, price);
   }
 
   @Auth(UserRoles.INSTRUCTOR)
@@ -53,8 +54,9 @@ export class CourseController {
   updateCourseStatus(
     @Param('courseId', ParseIntPipe) courseId: number,
     @Body() dto: updateCourseStatusDto,
+    @Req() req: Request,
   ) {
-    return this.courseService.updateCourseStatus(courseId, dto);
+    return this.courseService.updateCourseStatus(req.user.id, courseId, dto);
   }
 
   @Get('published')
@@ -82,6 +84,18 @@ export class CourseController {
     @Req() req: Request,
   ) {
     return this.courseService.getCoursePreview(courseId, req.user.id);
+  }
+
+  @Auth(UserRoles.USER)
+  @Post(':courseId/progress/verify')
+  verifyProgress(
+    @Param('courseId', ParseIntPipe) courseId: number,
+    @Req() req: Request,
+  ) {
+    return this.courseService.verifyCourseStudentCompleted(
+      courseId,
+      req.user.id,
+    );
   }
 
   @Auth(UserRoles.INSTRUCTOR)

@@ -40,7 +40,5 @@ export class RewardUser extends Model<
     type: DataType.INTEGER,
     allowNull: false,
   })
-  declare rewardId: number;
-
-  
+  declare rewardId: number; 
 }

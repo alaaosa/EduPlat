@@ -46,7 +46,7 @@ export class CouponRepository {
     );
   }
 
-  findByCoupon(coupon: string) {
+  findByCoupon(coupon: string ) {
     return this.exceptionHandler.handle(async () =>
       this.couponModel.findOne({ where: { coupon } }),
     );

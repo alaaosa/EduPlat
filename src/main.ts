@@ -38,8 +38,10 @@ async function bootstrap() {
     }),
   );
 
-  app.setBaseViewsDir(join(__dirname , '..' , 'views'))
-  app.setViewEngine('hbs')
+  app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.setViewEngine('hbs');
+  app.setGlobalPrefix('api');
+  // if change the port number , make sure to change it in the .env file as well
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import cloudinary from '../../common/config/cloudinary';
 import { DeleteApiResponse, UploadApiResponse } from 'cloudinary';
-
+type returnedFilesType = {
+  url: string;
+  public_id: string;
+  type : string
+}[];
 @Injectable()
 export class CloudinaryService {
   async upload(
@@ -34,32 +38,50 @@ export class CloudinaryService {
     });
   }
 
-  // async uploadMultiple(files: Buffer[], folder: string) {
-  //   const uploadPromises = files.map((file) =>
-  //     new Promise((resolve, reject) => {
-  //       const uploadStream = cloudinary.uploader.upload_stream(
-  //         {
-  //           folder,
-  //           resource_type: 'image',
-  //         },
-  //         (error, result) => {
-  //           if (error) {
-  //             reject(error);
-  //             return;
-  //           }
-  //
-  //           resolve(result);
-  //         },
-  //       );
-  //
-  //       uploadStream.end(file);
-  //     }),
-  //   );
-  //
-  //   return Promise.all(uploadPromises);
-  // }
+  async uploadMultiple(files: Buffer[], folder: string) {
+    const uploadPromises = files.map(
+      (file) =>
+        new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder,
+              resource_type: 'image',
+            },
+            (error, result) => {
+              if (error) {
+                reject(error);
+                return;
+              }
 
-  async delete(public_id: string) : Promise<DeleteApiResponse> {
+              resolve(result);
+            },
+          );
+
+          uploadStream.end(file);
+        }),
+    );
+
+    return Promise.all(uploadPromises);
+  }
+  async uploadMultipleForInstructer(
+    files: Express.Multer.File[],
+    folder: string,
+  ) {
+    const returnedFiles: returnedFilesType = [];
+    for (const file of files) {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder,
+      });
+      returnedFiles.push({
+        url: result.secure_url,
+        public_id: result.public_id,
+        type : file.mimetype.startsWith('video')? 'video' : 'file'
+      });
+    }
+    return returnedFiles;
+  }
+
+  async delete(public_id: string): Promise<DeleteApiResponse> {
     const res = await cloudinary.uploader.destroy(public_id);
 
     return res;

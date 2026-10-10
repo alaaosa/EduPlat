@@ -4,27 +4,26 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { GqlExecutionContext } from '@nestjs/graphql';
+
 import { TokenService } from '../security/token';
-import { UserRepository } from 'src/user/repo/user';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(
-    private tokenService: TokenService,
-    private userRepo: UserRepository,
-  ) {}
+  constructor(private tokenService: TokenService) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = this.getRequest(context);
 
-    const { Authorization } = request.headers as {Authorization : string};
+    const { authorization } = request.headers as {
+      authorization?: string;
+    };
 
-
-    if (!Authorization || !Authorization.startsWith('Bearer ')) 
+    if (!authorization || !authorization.startsWith('Bearer ')) {
       throw new UnauthorizedException('Invalid Token');
-    
+    }
 
-    const token = Authorization.split(' ')[1];
+    const token = authorization.split(' ')[1];
 
     const user = await this.tokenService.verify(token, {
       secret: process.env.JWT_SECRET,
@@ -37,5 +36,14 @@ export class AuthGuard implements CanActivate {
     request.user = user;
 
     return true;
+  }
+
+  private getRequest(context: ExecutionContext) {
+    if (context.getType<'http' | 'graphql'>() === 'http') {
+      return context.switchToHttp().getRequest();
+    }
+
+    const gqlContext = GqlExecutionContext.create(context);
+    return gqlContext.getContext().req;
   }
 }

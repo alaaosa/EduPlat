@@ -1,8 +1,10 @@
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotAcceptableException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthDTO, LoginDTO } from './dto/auth';
 import { UserRepository } from 'src/user/repo/user';
@@ -16,15 +18,18 @@ import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { TokenService } from 'src/common/security/token';
+import { MeilisearchService } from 'src/meilisearch/meilisearch.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly userRepository: UserRepository,
     private readonly otpRepository: OTPRepository,
     private readonly event: EventEmitter2,
     private readonly tokenService: TokenService,
     @InjectConnection() private sequelize: Sequelize,
+    private readonly meilisearchService: MeilisearchService,
   ) {}
 
   async createUser(authDTO: AuthDTO) {
@@ -88,7 +93,7 @@ export class AuthService {
     if (!user) throw new NotFoundException('not accurate account');
 
     if (!user.isActivited)
-      throw new NotAcceptableException('activate your email');
+      throw new UnauthorizedException('activate your email');
 
     if (!comparePassword(password, user.password))
       throw new NotAcceptableException('not accurate account');
@@ -103,12 +108,11 @@ export class AuthService {
 
   /// lllooooooooookkk hereeeeeeeeee
 
-  
   async activateAccount(otp: string, email: string) {
     const user = await this.userRepository.findByEmail(email);
-    const getOtp = await this.otpRepository.get( user!.id);
+    const getOtp = await this.otpRepository.get(user!.id);
 
-    if (!getOtp) {
+    if (!getOtp || !user) {
       throw new NotFoundException('Invalid otp number');
     }
 
@@ -117,12 +121,33 @@ export class AuthService {
       throw new NotAcceptableException('OTP Not Accurate');
     }
 
-    await this.sequelize.transaction(async (transaction) => {
-      await getOtp.destroy({ transaction });
-      await this.userRepository.changeIsActivited(user!.id, true, transaction);
-    });
+    let isActiviated = 0;
+    try {
+      await this.sequelize.transaction(async (transaction) => {
+        [isActiviated] = await this.userRepository.changeIsActivited(
+          user.id,
+          true,
+          transaction,
+        );
+        await getOtp.destroy({ transaction });
+      });
 
-    return true;
+      const index = this.meilisearchService.getIndex('users');
+      await index.updateDocuments([
+        {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt.toISOString().split('T')[0],
+          status: isActiviated > 0 ? 'active' : 'inactive',
+          id: user.id,
+        },
+      ]);
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to activate account for ${email}`, error);
+      throw new NotAcceptableException('OTP Not Accurate');
+    }
   }
 
   // @Cron(CronExpression.EVERY_10_MINUTES)

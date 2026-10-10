@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '../entities/user.entity';
 import { HandleException } from 'src/db/db.service';
 import { InjectModel } from '@nestjs/sequelize';
-import { UserSetting } from '../entities/user.setting';
 import { OTP } from '../entities/otp.entity';
 import { CreationAttributes, Transaction } from 'sequelize';
 import { Op } from 'sequelize';
-import { Cron, Interval } from '@nestjs/schedule';
 @Injectable()
 export class OTPRepository {
   constructor(
@@ -44,23 +41,26 @@ export class OTPRepository {
     return this.handleException.handle(async () => {
       return this.otpModel.findOne({
         where: { userId },
-        attributes: ['otp', 'expiresAt' , 'isUsed' ],
+        attributes: ['otp', 'expiresAt', 'isUsed'],
         order: [['createdAt', 'DESC']],
       });
     });
   }
- 
 
-
-  @Cron('0 0 * * *')
   deleteExpired() {
-    return this.otpModel.destroy({
-      where: {
-        expiresAt: {
-          [Op.lt]: new Date(),
+    return this.handleException.handle(async () =>
+      this.otpModel.destroy({
+        where: {
+          [Op.or]: [
+            { isUsed: true },
+            {
+              expiresAt: {
+                [Op.lt]: new Date(),
+              },
+            },
+          ],
         },
-        isUsed: true,
-      },
-    });
+      }),
+    );
   }
 }

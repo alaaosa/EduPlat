@@ -27,9 +27,8 @@ export class VideoHandler {
     return video;
   }
 
-  async createUrl(lessonId: number) {
-    const url = await this.muxService.createUploadUrl(lessonId);
-    if (!url) throw new Error('Failed to create upload URL');
+  async createUrl(instructerId:number ,lessonId: number) {
+    const url = await this.muxService.createUploadUrl(instructerId ,lessonId);
     return url;
   }
 
