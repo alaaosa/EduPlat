@@ -9,7 +9,7 @@ import { InjectConnection } from '@nestjs/sequelize';
 import { McqService } from '../strategies/mcq.service';
 import { CreateFinalDto } from './dto/create-final.dto';
 import { examType } from '../models/MCQ&TF/question';
-import { CourseRepository } from 'src/course/repo/course.repo';
+import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 
 @Injectable()
 export class FinalService {
@@ -28,7 +28,6 @@ export class FinalService {
    */
 
   async create(dto: CreateFinalDto, courseId: number, instructerId: number) {
-    
     const course =
       await this.courseRepository.findInstructerIdFromCourse(courseId);
     if (!course || course.instructerId !== instructerId)

@@ -4,15 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { CouponRepository } from 'src/course/coupon/repo/coupon.repo';
-import { CourseRepository } from 'src/course/repo/course.repo';
+import { CouponRepository } from 'src/promotion/infrastructure/prese/repo/coupon.repo.imp';
+import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 import { course_checkout_dto } from './dto/course_checkout_dto';
 
 @Injectable()
 export class CheckoutService {
   constructor(
     private readonly courseRepository: CourseRepository,
-    private readonly couponRepository: CouponRepository,
   ) {}
 
   async courseCheckOut(courseId: number, req: Request) {

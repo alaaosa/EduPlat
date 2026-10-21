@@ -8,7 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDTO, LoginDTO } from './dto/auth';
+import { AuthDTO, LoginDTO, OtpDTO } from './dto/auth';
 
 @Controller('auth')
 export class AuthController {
@@ -25,7 +25,7 @@ export class AuthController {
   }
 
   @Post('activate')
-  activate(@Body('otp') otp: string, @Body('email') email: string) {
-    return this.authService.activateAccount(otp, email);
+  activate(@Body() dto: OtpDTO) {
+    return this.authService.activateAccount(dto);
   }
 }

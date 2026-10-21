@@ -8,7 +8,7 @@ import {
 import { InjectConnection } from '@nestjs/sequelize';
 import { QueryTypes, Sequelize } from 'sequelize';
 import { HandleException } from 'src/db/db.service';
-import { PaymentRepository } from 'src/payment/repo/payment.repo';
+import { PaymentRepository } from 'src/payment/infrastructure/repo/payment.repo';
 import { AdminRepository } from './repo/admin.repo';
 import { TempUserRepository } from './repo/temp-user';
 import { TempUserDTO } from './dto/temp-user';

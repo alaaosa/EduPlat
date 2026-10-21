@@ -11,14 +11,14 @@ import {
 import { UserRoles } from 'src/common/enum';
 import { UserSetting } from './user.setting';
 import { OTP } from './otp.entity';
-import { Enrollment } from 'src/course/enrollment/entities/enrollment.entity';
+import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
 import type {
   CreationOptional,
   InferAttributes,
   InferCreationAttributes,
   NonAttribute,
 } from 'sequelize';
-import { CouponUser } from 'src/course/coupon/entities/coupon.user';
+import { CouponUser } from 'src/promotion/infrastructure/prese/models/coupon/coupon.user';
 import { Reward } from 'src/gamification/reward/entities/reward.entity';
 import { UserBadge } from 'src/gamification/badge/entities/badge.user';
 import { UserQuest } from 'src/gamification/quest/entities/user.quest';

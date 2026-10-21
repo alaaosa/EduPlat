@@ -1,13 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { LessonType } from '../shared/enum/lesson.type';
-import { VideoHandler } from '../handlers/video.handler';
-import { QuizService } from 'src/assessment2/quiz/quiz.service';
+import { VideoHandler } from '../services/video.service';
+import { ExamService } from 'src/assessment/application/exam.service';
+import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
 
 @Injectable()
 export class LessonHandler {
   constructor(
     private readonly videoService: VideoHandler,
-    private readonly quizService: QuizService,
+    private readonly examService: ExamService,
   ) {}
 
   private lessonRecord: Record<
@@ -17,7 +18,7 @@ export class LessonHandler {
     [LessonType.VIDEO]: (lessonId, userId) =>
       this.videoService.getLessonVideoPlayBackUrl(lessonId, userId),
     [LessonType.QUIZ]: (lessonId, userId) =>
-      this.quizService.findByLessonId(lessonId, userId),
+      this.examService.getExamDetails(lessonId, ExamTypes.QUIZ, userId),
   };
 
   async getLesson(type: LessonType, lessonId: number, userId: number) {

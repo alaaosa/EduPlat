@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { HandleException } from 'src/db/db.service';
-import { Course } from 'src/course/entities/course.entity';
-import { Enrollment } from 'src/course/enrollment/entities/enrollment.entity';
+import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
+import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
 import { Badge } from 'src/gamification/badge/entities/badge.entity';
 import { UserBadge } from 'src/gamification/badge/entities/badge.user';
 import { Quest } from 'src/gamification/quest/entities/quest.entity';
@@ -21,10 +21,12 @@ export interface UserActivityData {
 export class UserActivityRepository {
   constructor(
     private readonly exceptionHandler: HandleException,
-    @InjectModel(Enrollment) private readonly enrollmentModel: typeof Enrollment,
+    @InjectModel(Enrollment)
+    private readonly enrollmentModel: typeof Enrollment,
     @InjectModel(UserBadge) private readonly userBadgeModel: typeof UserBadge,
     @InjectModel(UserQuest) private readonly userQuestModel: typeof UserQuest,
-    @InjectModel(RewardUser) private readonly rewardUserModel: typeof RewardUser,
+    @InjectModel(RewardUser)
+    private readonly rewardUserModel: typeof RewardUser,
     @InjectModel(Reward) private readonly rewardModel: typeof Reward,
   ) {}
 

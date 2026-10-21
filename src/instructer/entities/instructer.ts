@@ -14,7 +14,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { User } from '../../user/entities/user.entity';
-import { Course } from 'src/course/entities/course.entity';
+import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
 import { YEARS_OF_EXPERIENCE } from '../shared/enum';
 
 @Table({

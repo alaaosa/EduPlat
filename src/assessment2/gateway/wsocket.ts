@@ -13,10 +13,10 @@ import { TokenService } from 'src/common/security/token';
 import { choiceDto } from '../dto/mcq&tf';
 import { AssessmentService } from '../assessment.service';
 import { AttemptRepository } from '../repo/attempt.repo';
-import { AttemptStatus } from '../models/attempt';
 import { IsInt } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
+import { AttemptStatus } from '../shared/enum/attempt';
 
 class SubmitAssessmentDto {
   @IsInt()

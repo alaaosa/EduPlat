@@ -21,7 +21,7 @@ import { McqService } from './strategies/mcq.service';
 import EventEmitter2 from 'eventemitter2';
 import { AssessmentEventNames } from './shared/const/event.names';
 import { AttemptStatus } from './shared/enum/attempt';
-import { CourseProgressService } from 'src/course/progress/course-progress.service';
+import { CourseProgressService } from 'src/learning/course/application/course-progress.service';
 
 type AssessmentUser = { id: number; name: string };
 
@@ -90,7 +90,7 @@ export class AssessmentService {
         if (!Number.isFinite(duration) || duration <= 0)
           throw new ConflictException('Assessment duration is not configured');
       }
-      
+
       if (!exam) throw new NotFoundException('Assessment not found');
 
       if (questions.length === 0) {
@@ -137,12 +137,11 @@ export class AssessmentService {
         await this.expireAttempt(attempt.id, assessmentId, user, type);
         throw new ConflictException('Your attempt has expired');
       }
-      if (attempt.status === AttemptStatus.COMPLETED) 
+      if (attempt.status === AttemptStatus.COMPLETED)
         throw new ConflictException('Your attempt is already completed');
-      
-      if (attempt.status === AttemptStatus.FINALIZING) 
+
+      if (attempt.status === AttemptStatus.FINALIZING)
         throw new ConflictException('Your attempt is being finalized');
-      
 
       await this.scheduleExpiration(
         attempt.id,
@@ -192,6 +191,7 @@ export class AssessmentService {
         answer.questionId,
         transaction,
       );
+
       if (existing && answer.revision <= existing.revision)
         throw new ConflictException('Stale answer revision');
 

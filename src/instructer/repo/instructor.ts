@@ -1,13 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
-import { EnrollmentRepository } from 'src/course/enrollment/repo/enrollment.repo';
-import { CourseRepository } from 'src/course/repo/course.repo';
 import { HandleException } from 'src/db/db.service';
 import { Instructer } from '../entities/instructer';
 import { CreationAttributes, Sequelize } from 'sequelize';
-import { Course } from 'src/course/entities/course.entity';
-import { Enrollment } from 'src/course/enrollment/entities/enrollment.entity';
-import { UserRepository } from 'src/user/repo/user';
+
 
 @Injectable()
 export class InstructerRepository {

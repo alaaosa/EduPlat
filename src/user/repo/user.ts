@@ -39,9 +39,37 @@ export class UserRepository {
     });
   }
 
-  findByEmail(email: string) {
+  /**
+   * @param email
+   * @returns ENSURE THAT USER EXIST
+   */
+  findByEmailToSignIn(email: string) {
     return this.handleException.handle(async () => {
-      return this.userModel.findOne({ where: { email } });
+      return this.userModel.findOne({ where: { email }, attributes: [] });
+    });
+  }
+  /**
+   * @param email
+   * @returns details of user
+   */
+  findByEmailToLogIn(email: string) {
+    return this.handleException.handle(async () => {
+      return this.userModel.findOne({
+        where: { email },
+        attributes: ['id', 'isActivited', 'password'],
+      });
+    });
+  }
+  /**
+   * @param email
+   * @returns details of user
+   */
+  findByEmailToActivateAccount(email: string) {
+    return this.handleException.handle(async () => {
+      return this.userModel.findOne({
+        where: { email },
+        attributes: ['id', 'isActivited', 'name', 'email', 'role', 'createdAt'],
+      });
     });
   }
 
@@ -138,7 +166,4 @@ export class UserRepository {
       this.userModel.update({ password }, { where: { id: userId } }),
     );
   }
-
- 
-  
 }

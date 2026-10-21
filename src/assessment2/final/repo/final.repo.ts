@@ -4,7 +4,7 @@ import { Final } from '../entities/final.entity';
 import { HandleException } from 'src/db/db.service';
 import { CreationAttributes, Model, Transaction, where } from 'sequelize';
 import { Mcq_TF_Question } from 'src/assessment2/models/MCQ&TF/question';
-import { Course } from 'src/course/entities/course.entity';
+import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Mcq_TF_Answer } from 'src/assessment2/models/MCQ&TF/answer';
 
@@ -98,5 +98,4 @@ export class FinalRepo {
       });
     });
   }
-
 }

@@ -9,7 +9,7 @@ import {
 } from 'sequelize-typescript';
 import { LessonType } from '../shared/enum/lesson.type';
 import { Video } from './types/video.model';
-import { Section } from 'src/course/entities/section.entity';
+import { Section } from 'src/learning/course/infrastructure/persistence/models/section.entity';
 import type {
   CreationOptional,
   InferAttributes,

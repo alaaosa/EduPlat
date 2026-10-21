@@ -14,7 +14,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Mcq_TF_Question } from 'src/assessment2/models/MCQ&TF/question';
-import { Course } from 'src/course/entities/course.entity';
+import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
 
 @Table({
   tableName: 'finals',
@@ -54,6 +54,6 @@ export class Final extends Model<
   @BelongsTo(() => Course, { as: 'course' })
   declare course: NonAttribute<Course>;
 
-  @HasMany(() => Mcq_TF_Question , {as : 'questions'})
+  @HasMany(() => Mcq_TF_Question, { as: 'questions' })
   declare mcq_tf_questions: NonAttribute<Mcq_TF_Question[]>;
 }

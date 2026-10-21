@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LeaderboardService } from 'src/gamification/leaderboard/leaderboard.service';
 import { StreakService } from 'src/gamification/streak/streak.service';
-import { EnrollmentRepository } from 'src/course/enrollment/repo/enrollment.repo';
+import { EnrollmentRepository } from 'src/enrollment/repo/enrollment.repo';
 
 export interface StudentDashboardResult {
   courseStats: { total: number; completed: number; inProgress: number };
@@ -25,16 +25,18 @@ export class StudentDashboardService {
   ) {}
 
   async getDashboard(userId: number): Promise<StudentDashboardResult> {
-    const [courseDashboard, leaderboardRank, currentStreak] = await Promise.all([
-      this.enrollmentRepository.getDashboardCourseStats(userId),
-      this.leaderboardService.getRankOfUser(userId),
-      this.streakService.getCurrentStreak(userId),
-    ]);
+    const [courseDashboard, leaderboardRank, currentStreak] = await Promise.all(
+      [
+        this.enrollmentRepository.getDashboardCourseStats(userId),
+        this.leaderboardService.getRankOfUser(userId),
+        this.streakService.getCurrentStreak(userId),
+      ],
+    );
 
     return {
       courseStats: {
         total: courseDashboard.total,
-        completed: courseDashboard.completed, 
+        completed: courseDashboard.completed,
         inProgress: courseDashboard.inProgress,
       },
       enrolledCourses: courseDashboard.enrolledCourses.map((course) => ({

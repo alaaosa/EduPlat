@@ -8,15 +8,15 @@ import { LessonRepository } from '../repo/lesson.repo';
 import { LessonDto } from '../dto/lesson.dto';
 import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize';
-import { CourseRepository } from 'src/course/repo/course.repo';
+import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 import { LessonHandler } from '../handler/lesson';
 
 @Injectable()
 export class LessonService {
   constructor(
     @InjectConnection() private sequlize: Sequelize,
-    private lessonRepository: LessonRepository,
-    private courseRepository: CourseRepository,
+    private readonly lessonRepository: LessonRepository,
+    private readonly courseRepository: CourseRepository,
     private readonly lessonHandler: LessonHandler,
   ) {}
 

@@ -16,7 +16,7 @@ import { Auth } from 'src/common/decorators/decomposition.decorater';
 import { UserRoles } from 'src/common/enum';
 import { LessonDto } from './dto/lesson.dto';
 import { UserEnrolled } from 'src/common/guard/lesson.guard';
-import { VideoHandler } from './services/video.handler';
+import { VideoHandler } from './services/video.service';
 
 @Controller()
 export class LessonController {

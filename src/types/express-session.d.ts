@@ -5,7 +5,7 @@ declare module 'express-session' {
   interface SessionData {
     pricing?: {
       courseId: number;
-      couponId: number;
+      couponId?: number;
       price: number;
     };
   }

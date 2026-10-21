@@ -10,7 +10,7 @@ import { QueueModule } from './queue/queue.module';
 import { InterceptorModule } from './interceptor/interceptor.module';
 import { MuxModule } from './mux/mux.module';
 import { RedisModule } from './redis/redis.module';
-import { PaymentModule } from './payment/payment.module';
+import { PaymentModule } from './payment1/payment.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { GamificationModule } from './gamification/gamification.module';
 import { DbModule } from './db/db.module';
@@ -20,6 +20,9 @@ import { InstructerModule } from './instructer/instructer.module';
 import { UserActivityModule } from './user_activity/user_activity.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { LearningModule } from './learning/learning.module';
+import { PromotionModule } from './promotion/promotion.module';
+import { PaymentModule } from './payment/payment.module';
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -46,10 +49,12 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     InstructerModule,
     UserActivityModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver:ApolloDriver,
-      typePaths:['./**/*.graphql'],
+      driver: ApolloDriver,
+      typePaths: ['./**/*.graphql'],
       context: ({ req }) => ({ req }),
-    })
+    }),
+    LearningModule,
+    PromotionModule,
   ],
   controllers: [],
   providers: [

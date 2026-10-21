@@ -6,11 +6,11 @@ import { CreationAttributes, LOCK, Sequelize, Transaction } from 'sequelize';
 import { VideoRepository } from './video.repo';
 import { Video } from '../models/types/video.model';
 import { Quiz } from 'src/assessment2/quiz/entities/quiz.entity';
-import { Section } from 'src/course/entities/section.entity';
-import { Course } from 'src/course/entities/course.entity';
-import { Enrollment } from 'src/course/enrollment/entities/enrollment.entity';
+import { Section } from 'src/learning/course/infrastructure/persistence/models/section.entity';
+import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
+import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
 import { Progress } from '../models/lesson.user';
-import { CourseRepository } from 'src/course/repo/course.repo';
+import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 import { model } from 'mongoose';
 
 @Injectable()
@@ -208,14 +208,14 @@ export class LessonRepository {
             model: Section,
             as: 'section',
             attributes: [],
-            include:[
+            include: [
               {
-                model:Course , 
-                as:'course',
-                attributes:['id' , 'instructerId'],
-                required : true
-              }
-            ]
+                model: Course,
+                as: 'course',
+                attributes: ['id', 'instructerId'],
+                required: true,
+              },
+            ],
           },
         ],
       });
@@ -230,5 +230,26 @@ export class LessonRepository {
     });
   }
 
- 
+  getInstructerId(lessonId: number) {
+    return this.handleException.handle(async () =>
+      this.lessonModel.findByPk(lessonId, {
+        attributes: [],
+        include: [
+          {
+            model: Section,
+            attributes: [],
+            required: true,
+            include: [
+              {
+                model: Course,
+                attributes: ['instructerId'],
+                required: true,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+  }
+
 }

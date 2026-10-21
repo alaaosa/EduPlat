@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { EnrollmentRepository } from 'src/course/enrollment/repo/enrollment.repo';
+import { EnrollmentRepository } from 'src/enrollment/repo/enrollment.repo';
 import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
@@ -21,6 +21,8 @@ export class UserEnrolled implements CanActivate {
     const req = context.switchToHttp().getRequest() as Request;
 
     const courseId = Number(req.params.courseId);
+
+    if (!courseId) throw new NotFoundException('course Id not found ');
     const userId = Number(req.user.id);
     let isEnrolled =
       (await this.redisService.client

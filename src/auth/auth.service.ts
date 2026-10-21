@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthDTO, LoginDTO } from './dto/auth';
+import { AuthDTO, LoginDTO, OtpDTO } from './dto/auth';
 import { UserRepository } from 'src/user/repo/user';
 import { UserRoles } from 'src/common/enum';
 import * as crypto from 'crypto';
@@ -16,7 +16,6 @@ import { userEvents } from 'src/common/events/user.event';
 import { OTPRepository } from 'src/user/repo/otp';
 import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { TokenService } from 'src/common/security/token';
 import { MeilisearchService } from 'src/meilisearch/meilisearch.service';
 
@@ -35,11 +34,9 @@ export class AuthService {
   async createUser(authDTO: AuthDTO) {
     const { name, email, password, repassword } = authDTO;
 
-    const user = await this.userRepository.findByEmail(email);
+    const user = await this.userRepository.findByEmailToSignIn(email);
 
-    if (user) {
-      throw new ConflictException('User already exists');
-    }
+    if (user) throw new ConflictException('User already exists');
 
     if (password !== repassword) {
       throw new ConflictException('Passwords not matched');
@@ -87,39 +84,34 @@ export class AuthService {
 
   async login(loginDTO: LoginDTO) {
     const { email, password } = loginDTO;
-
-    const user = await this.userRepository.findByEmail(email);
-
+    const user = await this.userRepository.findByEmailToLogIn(email);
     if (!user) throw new NotFoundException('not accurate account');
-
     if (!user.isActivited)
       throw new UnauthorizedException('activate your email');
-
     if (!comparePassword(password, user.password))
-      throw new NotAcceptableException('not accurate account');
-
+      throw new NotAcceptableException('Invalid credentials');
     const token = this.tokenService.sign(
       { id: user.id },
-      { secret: process.env.EMAIL, expiresIn: '1h' },
+      { secret: process.env.JWT_SECRET, expiresIn: '1h' },
     );
-
     return { user, token };
   }
 
-  /// lllooooooooookkk hereeeeeeeeee
+  async activateAccount(dto: OtpDTO) {
+    const user = await this.userRepository.findByEmailToActivateAccount(
+      dto.email,
+    );
+    if (!user) throw new NotFoundException('user not found');
 
-  async activateAccount(otp: string, email: string) {
-    const user = await this.userRepository.findByEmail(email);
-    const getOtp = await this.otpRepository.get(user!.id);
+    const otp = await this.otpRepository.get(user.id);
+    if (!otp) throw new NotFoundException('Invalid otp number');
 
-    if (!getOtp || !user) {
-      throw new NotFoundException('Invalid otp number');
-    }
-
-    if (otp !== getOtp.otp || getOtp.expiresAt < new Date() || getOtp.isUsed) {
-      // await this.otpRepository.delSpecificOtp(otp, userId); ==> if we used cron job
-      throw new NotAcceptableException('OTP Not Accurate');
-    }
+    if (
+      dto.otp !== otp.otp ||
+      otp.expiresAt.getTime() < new Date().getTime() ||
+      otp.isUsed
+    )
+      throw new NotAcceptableException('Invalid otp number');
 
     let isActiviated = 0;
     try {
@@ -129,7 +121,7 @@ export class AuthService {
           true,
           transaction,
         );
-        await getOtp.destroy({ transaction });
+        await otp.destroy({ transaction });
       });
 
       const index = this.meilisearchService.getIndex('users');
@@ -145,13 +137,8 @@ export class AuthService {
       ]);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to activate account for ${email}`, error);
+      this.logger.error(`Failed to activate account for ${dto.email}`, error);
       throw new NotAcceptableException('OTP Not Accurate');
     }
   }
-
-  // @Cron(CronExpression.EVERY_10_MINUTES)
-  // private async deleteExpiredOtps() {
-  //   await this.otpRepository.deleteExpired();
-  // }
 }

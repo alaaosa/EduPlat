@@ -8,10 +8,10 @@ import {
 } from '@nestjs/common';
 import { VideoStatus } from './enum/video';
 import { LessonRepository } from 'src/lesson/repo/lesson.repo';
-import { CourseRepository } from 'src/course/repo/course.repo';
+import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { VideoHandler } from 'src/lesson/services/video.handler';
+import { VideoHandler } from 'src/lesson/services/video.service';
 
 @Injectable()
 export class MuxService {

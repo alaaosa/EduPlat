@@ -15,8 +15,6 @@ import {
 import { MuxService } from './mux.service';
 import type { Request } from 'express';
 import Mux from '@mux/mux-node';
-import { Auth } from 'src/common/decorators/decomposition.decorater';
-import { UserRoles } from 'src/common/enum';
 
 @Controller('mux')
 export class MuxController {
