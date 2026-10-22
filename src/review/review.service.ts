@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { ReviewRepository } from './repo/review';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { EnrollmentRepository } from '../../enrollment/repo/enrollment.repo';
-import { CourseRepository } from '../../learning/course/infrastructure/persistence/sequelize/course.repo';
-import { CourseStatus } from '../../learning/course/domain/enums';
+import { EnrollmentRepository } from '../enrollment/repo/enrollment.repo';
+import { CourseRepository } from '../learning/course/infrastructure/persistence/sequelize/course.repo';
+import { CourseStatus } from '../learning/course/domain/enums';
 
 @Injectable()
 export class ReviewService {

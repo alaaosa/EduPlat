@@ -15,6 +15,13 @@ import { GroupPrivacy, WhoCanPost } from '../schema/group';
 import { GroupRole } from '../schema/user.group';
 import { Type } from 'class-transformer';
 
+export class GroupSettingsDto {
+  @IsOptional() @IsEnum(GroupPrivacy) privacy?: GroupPrivacy;
+  @IsOptional() @IsEnum(WhoCanPost) whoCanPost?: WhoCanPost;
+  @IsOptional() @IsBoolean() requirePostApproval?: boolean;
+  @IsOptional() @IsBoolean() allowMemberInvites?: boolean;
+  @IsOptional() @IsBoolean() showMemberCount?: boolean;
+}
 export class CreateGroupDto {
   @IsString() @IsNotEmpty() @MaxLength(120) name!: string;
   @IsString() @IsNotEmpty() @MaxLength(2000) description!: string;
@@ -23,13 +30,7 @@ export class CreateGroupDto {
   @Type(() => GroupSettingsDto)
   settings?: GroupSettingsDto;
 }
-export class GroupSettingsDto {
-  @IsOptional() @IsEnum(GroupPrivacy) privacy?: GroupPrivacy;
-  @IsOptional() @IsEnum(WhoCanPost) whoCanPost?: WhoCanPost;
-  @IsOptional() @IsBoolean() requirePostApproval?: boolean;
-  @IsOptional() @IsBoolean() allowMemberInvites?: boolean;
-  @IsOptional() @IsBoolean() showMemberCount?: boolean;
-}
+
 export class UpdateGroupDto {
   @IsOptional() @IsString() @IsNotEmpty() @MaxLength(120) name?: string;
   @IsOptional() @IsString() @IsNotEmpty() @MaxLength(2000) description?: string;

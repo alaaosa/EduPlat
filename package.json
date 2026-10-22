@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
+    "@as-integrations/express5": "^1.1.2",
     "@casl/ability": "^6.8.1",
     "@mux/mux-node": "^14.0.1",
     "@nestjs/apollo": "^13.4.5",

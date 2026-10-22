@@ -2,9 +2,9 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Queue } from 'bullmq';
-import { examType } from 'src/assessment2/models/MCQ&TF/question';
 import { queueNames } from 'src/common/queue';
 import { BadgeEventType, BadgeQueueNames } from '../shared/enum/badge.enums';
+import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
 
 @Injectable()
 export class BadgeEventListener {
@@ -16,10 +16,10 @@ export class BadgeEventListener {
     attemptId: number;
     userId: number;
     score: number;
-    type: examType;
+    type: ExamTypes;
     assessmentId: number;
   }) {
-    if (payload.type !== examType.FINAL) return;
+    if (payload.type !== ExamTypes.FINAL) return;
 
     this.badgeQueue.add(
       BadgeQueueNames.COURSE_COMPLETED,

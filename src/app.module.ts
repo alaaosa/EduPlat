@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
-import { CourseModule } from './course/course.module';
+import { CourseModule } from './learning/course/course.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from './notification/notification.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -10,8 +10,8 @@ import { QueueModule } from './queue/queue.module';
 import { InterceptorModule } from './interceptor/interceptor.module';
 import { MuxModule } from './mux/mux.module';
 import { RedisModule } from './redis/redis.module';
-import { PaymentModule } from './payment1/payment.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { PaymentModule } from './payment/payment.module';
 import { GamificationModule } from './gamification/gamification.module';
 import { DbModule } from './db/db.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -22,7 +22,9 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { LearningModule } from './learning/learning.module';
 import { PromotionModule } from './promotion/promotion.module';
-import { PaymentModule } from './payment/payment.module';
+import { CommunityModule } from './community/community.module';
+import { CertificateModule } from './certificate/certificate.module';
+import { LessonModule } from './lesson/lesson.module';
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -55,6 +57,9 @@ import { PaymentModule } from './payment/payment.module';
     }),
     LearningModule,
     PromotionModule,
+    CommunityModule,
+    CertificateModule,
+    LessonModule,
   ],
   controllers: [],
   providers: [

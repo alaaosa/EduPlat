@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { RewardModule } from './reward/reward.module.js';
-import { BadgeModule } from './badge/badge.module.js';
 import { BadgeModule } from './badge/badge.module';
+import { RewardModule } from './reward/reward.module';
 import { QuestModule } from './quest/quest.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { StreakModule } from './streak/streak.module';

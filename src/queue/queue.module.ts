@@ -7,6 +7,9 @@ import { queueNames } from 'src/common/queue';
   imports: [
     BullModule.registerQueue(
       { name: queueNames.SEND_EMAIL },
+      { name: queueNames.USER },
+      { name: queueNames.EXAM },
+      { name: queueNames.QUEST },
       {
         name: queueNames.ASSESSMENT,
         defaultJobOptions: {
@@ -24,6 +27,13 @@ import { queueNames } from 'src/common/queue';
         },
       },
     ),
+
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST ?? '127.0.0.1',
+        port: Number(process.env.REDIS_PORT ?? 6379),
+      },
+    }),
   ],
   exports: [BullModule],
 })

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CalculateProgressDto, VideoDto } from '../dto/video.dto';
 import { VideoRepository } from '../repo/video.repo';
 import { Sequelize, Transaction } from 'sequelize';
@@ -9,7 +9,7 @@ import { InjectConnection } from '@nestjs/sequelize';
 export class VideoHandler {
   constructor(
     private videoRepository: VideoRepository,
-    private readonly muxService: MuxService,
+    @Inject(forwardRef(() => MuxService)) private readonly muxService: MuxService,
     @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
 

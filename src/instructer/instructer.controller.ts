@@ -27,7 +27,7 @@ export class InstructerController {
   constructor(private readonly instructerService: InstructerService) {}
 
   @Auth(UserRoles.INSTRUCTOR)
-  @Get(':tab/:subTab?')
+  @Get(':tab')
   getInstructerData(
     @Param('tab') tab: string,
     @Req() req: Request,

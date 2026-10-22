@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { VideoStatus } from './enum/video';
 import { LessonRepository } from 'src/lesson/repo/lesson.repo';
@@ -18,7 +19,7 @@ export class MuxService {
   private readonly logger = new Logger(MuxService.name);
   constructor(
     @Inject('MUX_CLIENT') private mux: Mux,
-    private videoService: VideoHandler,
+    @Inject(forwardRef(() => VideoHandler)) private videoService: VideoHandler,
     private lessonRepository: LessonRepository,
     private readonly courseRepository: CourseRepository,
     @InjectConnection() private sequlize: Sequelize,

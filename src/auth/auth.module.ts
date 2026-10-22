@@ -5,11 +5,12 @@ import { TokenService } from 'src/common/security/token';
 import { UserModule } from 'src/user/user.module';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from 'src/common/guard/auth.guard';
+import { MeilisearchModule } from 'src/meilisearch/meilisearch.module';
 @Global()
 @Module({
-  imports:[UserModule , ],
+  imports:[UserModule , MeilisearchModule],
   controllers: [AuthController],
-  providers: [AuthService, TokenService, JwtService, AuthGuard] ,
+  providers: [AuthService, TokenService, JwtService, AuthGuard ,] ,
   exports: [TokenService , JwtService, AuthGuard],
 })
 export class AuthModule {}

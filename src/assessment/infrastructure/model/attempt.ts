@@ -33,9 +33,7 @@ import { Grade } from './grade';
     {
       fields: ['status', 'expiresAt'],
     },
-    {
-      fields: ['userId', 'examType', 'status'],
-    },
+    
   ],
 })
 export class Attempt extends Model<

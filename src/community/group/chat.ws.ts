@@ -28,9 +28,9 @@ export class GroupGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly groups: GroupService,
     private readonly realtime: CommunicationRealtimeService,
   ) {}
-  @WebSocketServer() set server(value: Server) {
-    this.realtime.attach(value);
-  }
+  @WebSocketServer()
+  server!: Server;
+
   handleDisconnect(client: Socket) {}
   async handleConnection(client: Socket) {
     const token = client.handshake.auth?.token;

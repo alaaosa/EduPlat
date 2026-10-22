@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { NotificationService } from './notification.service';
 import { userEvents } from 'src/common/events/user.event';
 import { NotificationType } from './constants/notification.constants';
 
+@Injectable()
 export class NotificationListener {
   constructor(private readonly notificationService: NotificationService) {}
   @OnEvent(userEvents.USER_VERIFICATION)

@@ -16,7 +16,7 @@ import type {
   InferCreationAttributes,
   NonAttribute,
 } from 'sequelize';
-import { Quiz } from 'src/assessment2/quiz/entities/quiz.entity';
+import { Exam } from 'src/assessment/infrastructure/model/exam';
 
 @Table({
   tableName: 'lessons',
@@ -76,8 +76,4 @@ export class Lesson extends Model<
   })
   declare section: NonAttribute<Section>;
 
-  @HasOne(() => Video, { as: 'video' })
-  declare video?: NonAttribute<Video>;
-  @HasOne(() => Quiz, { as: 'quiz' })
-  declare quiz?: NonAttribute<Quiz>;
 }

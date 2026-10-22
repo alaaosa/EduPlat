@@ -17,8 +17,16 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Auth(UserRoles.ADMIN)
-  @Get('dashboard/overview/:tab/:subTab?')
+  @Get('dashboard/overview/:tab')
   getAdminDashboardData(
+    @Param('tab') tab: string,
+    @Param('subTab') subTab?: string,
+  ) {
+    return this.adminService.getAdminDashboardData(tab);
+  }
+  @Auth(UserRoles.ADMIN)
+  @Get('dashboard/overview/:tab/:subTab')
+  getAdminDashboardDataWithSubTab(
     @Param('tab') tab: string,
     @Param('subTab') subTab?: string,
   ) {

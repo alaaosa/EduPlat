@@ -1,5 +1,5 @@
 import { IsEnum, IsInt, IsPositive } from 'class-validator';
-import { examType } from 'src/assessment2/models/MCQ&TF/question';
+import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
 
 export class payloadDTO {
   @IsInt({ message: 'assessmentId must be a integer number' })
@@ -11,8 +11,8 @@ export class payloadDTO {
   @IsInt({ message: 'userId must be a integer number' })
   userId!: number;
 
-  @IsEnum(examType)
-  type!: examType;
+  @IsEnum(ExamTypes)
+  type!: ExamTypes;
 
   @IsInt({ message: 'attemptId must be a integer number' })
   attemptId!: number;

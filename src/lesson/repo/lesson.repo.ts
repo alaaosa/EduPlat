@@ -3,23 +3,18 @@ import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Lesson } from '../models/lesson.model';
 import { HandleException } from 'src/db/db.service';
 import { CreationAttributes, LOCK, Sequelize, Transaction } from 'sequelize';
-import { VideoRepository } from './video.repo';
 import { Video } from '../models/types/video.model';
-import { Quiz } from 'src/assessment2/quiz/entities/quiz.entity';
 import { Section } from 'src/learning/course/infrastructure/persistence/models/section.entity';
 import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
 import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
 import { Progress } from '../models/lesson.user';
-import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
-import { model } from 'mongoose';
+import { Exam } from 'src/assessment/infrastructure/model/exam';
 
 @Injectable()
 export class LessonRepository {
   constructor(
     private handleException: HandleException,
-
     @InjectModel(Lesson) private lessonModel: typeof Lesson,
-    @InjectConnection() private readonly sequlize: Sequelize,
   ) {}
 
   bulkCreate(
@@ -75,8 +70,8 @@ export class LessonRepository {
             required: false,
           },
           {
-            model: Quiz,
-            as: 'quiz',
+            model: Exam,
+            as: 'exam',
             attributes: ['id', 'duration'],
             required: false,
           },
@@ -251,5 +246,4 @@ export class LessonRepository {
       }),
     );
   }
-
 }

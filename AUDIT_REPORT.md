@@ -17,7 +17,7 @@
 
 ### هيكل المجلدات باختصار
 
-`src/auth`, `src/user`, `src/admin`, `src/instructer`: حسابات وأدوار؛ `src/learning/course`, `src/lesson`, `src/enrollment`: محتوى الدورات والتسجيل؛ `src/mux`: الفيديو؛ `src/assessment2`, `src/assessment`: الاختبارات؛ `src/payment`, `src/checkout`: الدفع؛ `src/community/group`: المجموعات؛ `src/db`, `src/redis`, `src/queue`, `src/notification`, `src/meilisearch`: البنية والتكاملات.
+`src/auth`, `src/user`, `src/admin`, `src/instructer`: حسابات وأدوار؛ `src/learning/course`, `src/lesson`, `src/enrollment`: محتوى الدورات والتسجيل؛ `src/mux`: الفيديو؛ `src/assessment`: الاختبارات؛ `src/payment`, `src/checkout`: الدفع؛ `src/community/group`: المجموعات؛ `src/db`, `src/redis`, `src/queue`, `src/notification`, `src/meilisearch`: البنية والتكاملات.
 
 ### التشغيل والإعدادات
 
@@ -78,7 +78,7 @@
 ### أخطاء منطقية وعيوب تشغيل
 
 - **رفض الدورة قد ينشرها بدل رفضها:** `src/learning/course/application/course.service.ts`، داخل `updateCourseStatus`؛ بعد شرط `reject` ينفذ `course.updateStatusToPublish()` بدون `else`.
-- **أسرار JWT غير متسقة:** `src/auth/auth.service.ts` يوقّع login token باستخدام `process.env.EMAIL`؛ `src/common/guard/auth.guard.ts` يتحقق باستخدام `process.env.JWT_SECRET`؛ `src/assessment2/gateway/wsocket.ts` أيضًا يتحقق بـ`JWT_SECRET`.
+- **أسرار JWT غير متسقة:** `src/auth/auth.service.ts` يوقّع login token باستخدام `process.env.EMAIL`؛ `src/common/guard/auth.guard.ts` يتحقق باستخدام `process.env.JWT_SECRET`.
 - **تنشيط المستخدم قد يرمي خطأ بدل NotFound عند email غير موجود:** `AuthService.activateAccount` يستعمل `user!.id` قبل التحقق من `user`، ثم يفحص null لاحقًا.
 - **Course preview يشترط وجود final exam:** `CourseService.getCoursePreview` يعيد NotFound إذا لم يوجد `finalExam` أو coursePreview؛ هذا قد يمنع فتح دورة لا تحتوي امتحانًا نهائيًا.
 - **Stripe يعيد المستخدم إلى مواقع ثابتة:** `src/payment/infrastructure/stripe/stripe.payment.gateway.ts` يضع `success_url` على Facebook و`cancel_url` على Google، فلا تكتمل تجربة دفع المنتج داخل المنصة.
@@ -90,7 +90,6 @@
 ### أساسيات الأمان
 
 - `src/mux/mux.controller.ts`: `GET mux/assets/:assetId` و`DELETE mux/assets/:assetId` غير محميين بـAuth أو permission check. delete endpoint يمكّن حذف أصل فيديو إذا عُرف asset ID.
-- `src/assessment2/quiz/quiz.controller.ts`: إنشاء quiz وقراءة quiz بالـID غير محميين؛ يجب ألا يستطيع مستخدم مجهول/طالب إنشاء أسئلة أو قراءة الإجابات الصحيحة.
 - `src/payment/presentation/payment.controller.ts`: Stripe OAuth callback غير محمي ولا يظهر تحقق من state مقابل جلسة/مستخدم؛ احتمال ربط حساب instructor غير صحيح.
 - `src/learning/course/application/course.service.ts`: إرسال دورة للمراجعة لا يتحقق في الخدمة من أن `course.instructerId` يطابق instructor المرسل، والـcontroller يسمح لأي instructor؛ يلزم التأكد من repository/query.
 - `src/lesson/lesson.controller.ts`: إنشاء lesson يستقبل `courseId` و`sectionId` لكن service لا يتحقق من ملكية instructor أو تطابق section والدورة في المسار الظاهر.
@@ -102,7 +101,7 @@
 - `TODO.md` يذكر مهام غير منجزة مرتبطة بإنهاء attempts بعد 5 دقائق، اكتشاف فقدان الاتصال بالامتحان، وإشعار إتمام الاختبار بالبريد وداخل التطبيق.
 - `TODO.md` يذكر أيضًا إضافة duration للـquiz، والتحقق من الضغط المزدوج على كود coupon.
 - أجزاء كثيرة للميزات الإضافية (gamification, certificates, reviews, chat) موجودة، لكنها خارج الحد الأدنى ولا تثبت اكتمال رحلة MVP.
-- هناك تعريفات/وحدات legacy أو متوازية (مثل `src/assessment` و`src/assessment2`, و`src/payment1` import في `app.module.ts` بجانب `src/payment`)؛ يلزم توضيح المعتمد، وبعض المسارات الفارغة أو القديمة قد تكون مضللة.
+- هناك تعريفات/وحدات legacy أو متوازية (مثل `src/assessment` و`src/payment1` import في `app.module.ts` بجانب `src/payment`)؛ يلزم توضيح المعتمد، وبعض المسارات الفارغة أو القديمة قد تكون مضللة.
 
 ## 5. الخلاصة
 

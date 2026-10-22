@@ -5,5 +5,6 @@ import { MeilisearchController } from './meilisearch.controller';
 @Module({
   controllers: [MeilisearchController],
   providers: [MeilisearchService],
+  exports: [MeilisearchService],
 })
 export class MeilisearchModule {}

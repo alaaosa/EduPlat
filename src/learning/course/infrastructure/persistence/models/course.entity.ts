@@ -203,8 +203,7 @@ export class Course extends Model<
   @HasMany(() => Progress, { as: 'progresses' })
   declare progresses: NonAttribute<Progress[]>;
 
-  @HasMany(() => Payment, { as: 'payments' })
-  declare payments: NonAttribute<Payment[]>;
+
 
   @DeletedAt
   declare deletedAt: CreationOptional<Date | null>;

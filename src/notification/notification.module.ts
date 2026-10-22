@@ -8,13 +8,16 @@ import { NotificationInAppRepository } from './channels/in-app/repo/in.app';
 import { NotificationGateway } from './channels/in-app/notification.gw';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { NotificationEntity } from './channels/in-app/entity/notification.entity';
+import { NotificationListener } from './notification.listener';
+import { EmailWorker } from './channels/email/email.processor';
 
 @Module({
   imports: [SequelizeModule.forFeature([NotificationEntity])],
   providers: [
     NotificationService,
     EmailService,
-    NotificationService,
+    NotificationListener,
+    EmailWorker,
     EmailProvider,
     InAppNotificationService,
     NotificationInAppRepository,

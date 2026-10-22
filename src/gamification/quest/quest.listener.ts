@@ -2,7 +2,6 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Queue } from 'bullmq';
-import { examType } from 'src/assessment2/models/MCQ&TF/question';
 import { queueNames } from 'src/common/queue';
 import { BadgeEventType, BadgeQueueNames } from '../shared/enum/badge.enums';
 import { payloadDTO } from './dto/quest';

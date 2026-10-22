@@ -14,6 +14,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Instructer } from 'src/instructer/entities/instructer';
+import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
 
 @Table({
   tableName: 'payments',
@@ -25,7 +26,7 @@ import { Instructer } from 'src/instructer/entities/instructer';
       fields: ['userId', 'itemId', 'type'],
     },
     {
-      fields: ['instructorId' ],
+      fields: ['instructorId'],
     },
   ],
 })
@@ -98,6 +99,8 @@ export class Payment extends Model<
     unique: true,
   })
   declare stripePaymentIntentId: string;
+
+
 
   @BelongsTo(() => Instructer, {
     as: 'instructor',

@@ -5,11 +5,12 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Streak } from './entities/streak.entity';
 import { StreakRepository } from './repo/streak.repo';
 import { HandleException } from 'src/db/db.service';
+import { StreakGateway } from './wbsocket';
 
 @Module({
   controllers: [StreakController],
   imports: [SequelizeModule.forFeature([Streak])],
-  providers: [StreakService, StreakRepository, HandleException],
+  providers: [StreakService, StreakRepository, StreakGateway, HandleException],
   exports: [StreakService],
 })
 export class StreakModule {}

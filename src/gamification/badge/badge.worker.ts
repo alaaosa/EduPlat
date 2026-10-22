@@ -6,10 +6,8 @@ import { Logger } from '@nestjs/common';
 
 @Processor(queueNames.BADGE)
 export class BadgeWorker extends WorkerHost {
-  constructor(
-    private readonly badgeRepository: BadgeRepository,
-    private readonly logger = new Logger(BadgeWorker.name),
-  ) {
+  private readonly logger = new Logger(BadgeWorker.name);
+  constructor(private readonly badgeRepository: BadgeRepository) {
     super();
   }
   async process(job: Job, token?: string): Promise<any> {

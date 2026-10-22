@@ -6,10 +6,8 @@ import { Logger } from '@nestjs/common';
 
 @Processor(queueNames.QUEST, { concurrency: 1 })
 export class QuestWorker extends WorkerHost {
-  constructor(
-    private readonly questRepository: QuestRepository,
-    private readonly logger = new Logger(QuestWorker.name),
-  ) {
+  private readonly logger = new Logger(QuestWorker.name)
+  constructor(private readonly questRepository: QuestRepository) {
     super();
   }
   async process(job: Job, token?: string): Promise<any> {

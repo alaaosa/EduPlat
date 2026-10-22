@@ -18,6 +18,13 @@ import { RewardDetailsValidator } from '../validator/reward.valid';
 
 type dtoTypes = RewardDiscountDTO;
 
+class Image {
+  @IsUrl()
+  url!: string;
+
+  @IsString()
+  public_id!: string;
+}
 export class RewardDiscountDTO {
   @IsInt()
   @IsPositive()
@@ -40,7 +47,6 @@ export class RewardDto {
   @MinLength(3, { message: 'min char is 3 ' })
   description!: string;
 
-  
   @IsPositive()
   cost!: number;
 
@@ -60,12 +66,4 @@ export class RewardDto {
   // })
   // @ValidateNested({ each: true })
   // detailsDto!: dtoTypes;
-}
-
-class Image {
-  @IsUrl()
-  url!: string;
-
-  @IsString()
-  public_id!: string;
 }
