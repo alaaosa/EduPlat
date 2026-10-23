@@ -2,7 +2,8 @@
 /dist
 /node_modules
 /build
-/.codex
+/.codex/environments/environment.toml
+/docs/assessment/ass.md
 
 # Logs
 logs
