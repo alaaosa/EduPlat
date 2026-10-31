@@ -26,6 +26,7 @@ import { StripeGateway } from 'src/payment/infrastructure/stripe/stripe.payment.
 import { Action } from '../domain/enums/approv-enum';
 import { ExamRepository } from 'src/assessment/infrastructure/repo/exam.repo';
 import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import EventEmitter2 from 'eventemitter2';
 
 @Injectable()
 export class CourseService {
@@ -40,6 +41,7 @@ export class CourseService {
     private readonly courseProgressService: CourseProgressService,
     private readonly instructerRepository: InstructerRepository,
     private readonly stripeGateway: StripeGateway,
+    private readonly eventEmitter2: EventEmitter2,
   ) {}
 
   async saveAsDraft(dto: CreateCourseDto, instructorId: number) {
@@ -155,7 +157,11 @@ export class CourseService {
   }
 
   // send course to admin for review
-  async sendCourseForReview(courseId: number, instructorId: number) {
+  async sendCourseForReview(
+    courseId: number,
+    instructorId: number,
+    email: string,
+  ) {
     const course = await this.courseRepository.getCourseById(courseId);
 
     const states = await this.courseRepository.getCourseState(courseId);
@@ -178,12 +184,27 @@ export class CourseService {
 
     const status = course.updateStatusToPending();
     await this.courseRepository.updateStatus(courseId, status);
+    this.eventEmitter2.emit('course.review', {
+      title: course.getTitle(),
+      email,
+      instructorId,
+    });
     return;
   }
 
   // update course status by admin
-  async updateCourseStatus(courseId: number, dto: updateCourseStatusDto) {
-    const course = await this.courseRepository.getCourseById(courseId);
+  async updateCourseStatus(
+    courseId: number,
+    dto: updateCourseStatusDto,
+    email: string,
+  ) {
+    const [course, courseInfo] = await Promise.all([
+      this.courseRepository.getCourseById(courseId),
+      this.courseRepository.getInstructerId(courseId),
+    ]);
+
+    if (courseInfo && courseInfo.instructerId !== dto.instructerId)
+      throw new ConflictException('this course not related to this instructer');
 
     const transaction = await this.sequlize.transaction(async (transaction) => {
       if (dto.action === Action.REJECT) {
@@ -199,6 +220,12 @@ export class CourseService {
           transaction,
         );
 
+        this.eventEmitter2.emit('course.rejected', {
+          instructerId: dto.instructerId,
+          title: course.getTitle(),
+          email: dto.instructerEmail,
+        });
+
         return;
       }
 
@@ -210,6 +237,12 @@ export class CourseService {
         transaction,
       );
       await this.courseRepository.deleteReasonOfReject(courseId, transaction);
+      this.eventEmitter2.emit('course.published', {
+        title: course.getTitle(),
+        email: dto.instructerEmail,
+        instructerId: dto.instructerId,
+      });
+
       return;
     });
 

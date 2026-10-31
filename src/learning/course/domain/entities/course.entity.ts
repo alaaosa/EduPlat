@@ -81,6 +81,9 @@ export class CourseEntity {
   getStatus() {
     return this.props.status;
   }
+  getTitle() {
+    return this.props.title;
+  }
 
   modifyPrice() {
     const price = this.props.price;

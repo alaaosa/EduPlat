@@ -11,44 +11,6 @@
 
 add duration in quiz resource
 
-
-
 validate if user click double on apply code
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+student enrolled => payment => sent notificatiuon

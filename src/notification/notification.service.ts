@@ -1,10 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { EmailService } from './channels/email/email.service';
 import { InAppNotificationService } from './channels/in-app/in-app-notification.service';
 import { UserRepository } from 'src/user/repo/user';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import {
   INotificationSetting,
   ISendNotification,
@@ -27,15 +25,16 @@ export class NotificationService {
     return check;
   }
 
-  async send(dto: ISendNotification) {
-    const setting = await this.checkSetting(dto.userId);
+  async send(sendNotificationInteface: ISendNotification) {
+    const setting = await this.checkSetting(sendNotificationInteface.userId);
     if (setting?.emailNotification) {
-      await this.emailService.send(dto);
+      await this.emailService.send(sendNotificationInteface);
     }
-    
 
     if (setting?.pushNotification) {
-      await this.inAppNotificationService.createNotification(dto);
+      await this.inAppNotificationService.createNotification(
+        sendNotificationInteface,
+      );
     }
   }
 }

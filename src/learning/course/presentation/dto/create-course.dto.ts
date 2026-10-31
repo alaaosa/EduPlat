@@ -4,6 +4,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDefined,
+  IsEmail,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -127,7 +128,6 @@ export class CreateCourseDto {
 export class UpdateCourseDto extends PartialType(CreateCourseDto) {}
 
 export class updateCourseStatusDto {
-  
   @IsEnum(Action, { message: 'Invalid course status' })
   declare action: Action;
   @IsEnum(CourseStatus, { message: 'Invalid course status' })
@@ -135,6 +135,13 @@ export class updateCourseStatusDto {
   @IsString()
   @IsNotEmpty({ message: 'Reason is required when rejecting a course' })
   declare reason: string;
+
+  @IsPositive()
+  @IsInt()
+  instructerId!: number;
+
+  @IsEmail()
+  instructerEmail !: string
 }
 
 export class AddPriceDTO {
@@ -143,5 +150,3 @@ export class AddPriceDTO {
   @Min(0)
   price!: number;
 }
-
-
