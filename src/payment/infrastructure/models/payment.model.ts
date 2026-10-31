@@ -100,6 +100,13 @@ export class Payment extends Model<
   })
   declare stripePaymentIntentId: string;
 
+  // @Column({
+  //   type: DataType.UUID,
+  //   allowNull: false,
+  //   unique: true,
+  // })
+  // declare idempotency_key: string;
+
 
 
   @BelongsTo(() => Instructer, {

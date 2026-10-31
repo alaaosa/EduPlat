@@ -5,6 +5,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
   MinLength,
 } from 'class-validator';
@@ -25,4 +26,7 @@ export class EnrollDto {
 
   @Type(() => Number)
   itemId!: number;
+
+  @IsUUID()
+  idempotency_key!: string;
 }

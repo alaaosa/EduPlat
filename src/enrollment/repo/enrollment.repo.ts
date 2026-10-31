@@ -46,9 +46,9 @@ export class EnrollmentRepository {
    * @returns record the enrollment
    */
 
-  create(courseId: number, userId: number, enrollmentType: EnrollmentTypes) {
+  create(courseId: number, userId: number,idempotency_key:string , enrollmentType: EnrollmentTypes) {
     return this.exceptionHandler.handle(async () =>
-      this.enrollmentModel.create({ userId, enrollmentType, courseId }),
+      this.enrollmentModel.create({ userId, enrollmentType , idempotency_key, courseId }),
     );
   }
 

@@ -7,6 +7,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import {randomUUID} from 'crypto'
 import { Request } from 'express';
 import type { Event, Stripe } from 'stripe';
 import { PurchasableTypes } from '../domain/enum/purchasable-types.enum';
@@ -147,6 +148,7 @@ export class PaymentService {
     }
 
     this.eventEmmiter2.emit(`payment.${type}.successfully`, {
+      idempotency_key : randomUUID(),
       title,
       email,
       type,

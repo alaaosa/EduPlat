@@ -41,6 +41,13 @@ export class Enrollment extends Model<
   declare id: CreationOptional<number>;
 
   @Column({
+    type: DataType.UUID,
+    allowNull: false,
+    unique: true,
+  })
+  declare idempotency_key: string;
+
+  @Column({
     type: DataType.STRING,
     validate: {
       isIn: [Object.values(EnrollmentTypes)],
