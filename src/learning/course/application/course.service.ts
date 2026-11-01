@@ -196,7 +196,6 @@ export class CourseService {
   async updateCourseStatus(
     courseId: number,
     dto: updateCourseStatusDto,
-    email: string,
   ) {
     const [course, courseInfo] = await Promise.all([
       this.courseRepository.getCourseById(courseId),
@@ -214,6 +213,7 @@ export class CourseService {
           course.getStatus(),
           transaction,
         );
+
         await this.courseRepository.createCourseReject(
           courseId,
           dto.reason,
@@ -224,6 +224,7 @@ export class CourseService {
           instructerId: dto.instructerId,
           title: course.getTitle(),
           email: dto.instructerEmail,
+          reason: dto.reason,
         });
 
         return;

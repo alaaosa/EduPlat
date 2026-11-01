@@ -5,8 +5,9 @@ export interface INotificationSetting {
   pushNotification?: boolean;
 }
 
-export interface ISendNotification<T = unknown> {
+export interface ISendNotification<T = {  email: string; body : string }> {
   userId: number;
   type: NotificationType;
+  subject : string;
   data: T;
 }
