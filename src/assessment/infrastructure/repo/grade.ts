@@ -15,11 +15,40 @@ export class GradeRepository {
   ) {}
 
   saveStudentAnswer(
-    data: Omit<CreationAttributes<StudentAnswer>, 'userId'>,
+    data: Omit<
+      CreationAttributes<StudentAnswer>,
+      'userId' | 'examId' | 'attemptId'
+    >,
     userId: number,
+    examId: number,
+    attemptId: number,
   ) {
     return this.handleException.handle(async () =>
-      this.studentAnswerModel.upsert({ ...data, userId }),
+      this.studentAnswerModel.upsert({ ...data, userId, examId, attemptId }),
+    );
+  }
+
+  getStudentAnswersByExamIdAndUserId(examId: number, userId: number) {
+    return this.handleException.handle(async () => {
+      const answers = await this.studentAnswerModel.findAll({
+        where: { examId, userId },
+        attributes: ['questionId', 'studentAnswerId'],
+      });
+      return answers.map((answer) => ({
+        id: answer.questionId,
+        answerId: answer.studentAnswerId,
+      }));
+    });
+  }
+
+  saveGrade(
+    data: Omit<CreationAttributes<Grade>, 'userId' | 'examId' | 'attemptId'>,
+    userId: number,
+    examId: number,
+    attemptId: number,
+  ) {
+    return this.handleException.handle(async () =>
+      this.gradeModel.create({ ...data, userId, examId, attemptId }),
     );
   }
 }

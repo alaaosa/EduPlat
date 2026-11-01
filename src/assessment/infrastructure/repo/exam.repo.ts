@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Exam } from '../model/exam';
 import { HandleException } from 'src/db/db.service';
-import { CreationAttributes, Sequelize, Transaction } from 'sequelize';
+import { CreationAttributes, Sequelize, Transaction, where } from 'sequelize';
 import { Mcq_TF_Question } from '../model/question';
 import { Mcq_TF_Answer } from '../model/answer';
 import { model } from 'mongoose';
@@ -75,6 +75,51 @@ export class ExamRepository {
         ],
       }),
     );
+  }
+  findByExamIdToGrade(examId: number): Promise<{
+    id: number;
+    passingScore: number;
+    answers: {
+      id: number;
+      answerId: number;
+    }[];
+  }> {
+    return this.handleException.handle(async () => {
+      const exam = await this.examModel.findByPk(examId, {
+        attributes: ['id', 'passingScore'],
+        include: [
+          {
+            model: Mcq_TF_Question,
+            as: 'questions',
+            attributes: ['id'],
+            required: true,
+            include: [
+              {
+                model: Mcq_TF_Answer,
+                as: 'answers',
+                attributes: ['id'],
+                where: { isCorrect: true },
+                required: true,
+              },
+            ],
+          },
+        ],
+      });
+
+      if (!exam) throw new Error('Exam not found');
+
+      return {
+        id: exam.id,
+        passingScore: exam.passingScore,
+        // correctAnswers: Object.fromEntries(
+        //   exam['questions'].map((q) => [q.id, q.answers[0].id]),
+        // ),
+        answers: exam['questions'].map((q) => ({
+          id: q.id,
+          answerId: q.answers[0].id,
+        })),
+      };
+    });
   }
 
   findExamDetails(itemId: number, type: ExamTypes, userId: number) {

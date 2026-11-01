@@ -1,15 +1,106 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { GradeRepository } from '../infrastructure/repo/grade';
 import { StudentAnswerDTO } from '../presentation/dto/student-answer';
+import { ExamMap } from './mappers/exam-map';
+import { ExamTypes } from '../domain/enum/types-of-exam';
+import { RedisService } from 'src/redis/redis.service';
+import { ExamRepository } from '../infrastructure/repo/exam.repo';
+import { GradeEntity } from '../domain/entity/grade';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class GradeService {
-  constructor(private readonly gradeRepo: GradeRepository) {}
+  constructor(
+    private readonly gradeRepo: GradeRepository,
+    private readonly examRepo: ExamRepository,
+    private readonly examMap: ExamMap,
+    private readonly redisService: RedisService,
+  ) {}
 
-  async saveStudentAnswer(dto: StudentAnswerDTO, userId: number) {
+  async saveStudentAnswer(
+    dto: StudentAnswerDTO,
+    userId: number,
+    examId: number,
+    attemptId: number,
+  ) {
+    const results = await this.redisService.client.get(
+      `exam-${userId}-${attemptId}`,
+    );
+    if (!results) {
+      await this.examMap.getDataForExam(dto.examType, examId, userId);
+    } else {
+      const data = JSON.parse(results) as {
+        examId: number;
+        userId: number;
+        attemptId: number;
+        isEligiable: boolean;
+      };
+
+      if (
+        data.examId !== examId ||
+        data.userId !== userId ||
+        data.attemptId !== attemptId ||
+        !data.isEligiable
+      ) {
+        throw new ForbiddenException(
+          'You are not allowed to submit answers for this exam',
+        );
+      }
+    }
+
     await this.gradeRepo.saveStudentAnswer(
       { questionId: dto.questionId, studentAnswerId: dto.answerId },
       userId,
+      examId,
+      attemptId,
     );
+  }
+
+  @OnEvent('exam.submitted')
+  async gradeExam(payload: {
+    idempotency_key: string;
+    examId: number;
+    userId: number;
+    attemptId: number;
+  }) {
+    const result = await this.redisService.client.set(
+      `${payload.idempotency_key}`,
+      JSON.stringify({ examId: payload.examId, userId: payload.userId }),
+      'EX',
+      60 * 60,
+      'NX',
+    );
+
+    if (!result) return;
+    
+    const { examId, userId } = payload;
+    const [exam, answers] = await Promise.all([
+      this.examRepo.findByExamIdToGrade(examId),
+      this.gradeRepo.getStudentAnswersByExamIdAndUserId(examId, userId),
+    ]).catch((err) => {
+      throw new BadRequestException('Error grading exam');
+    });
+
+    if (!exam || !answers || answers.length == 0)
+      throw new BadRequestException('Exam not found');
+
+    const GradeDomain = new GradeEntity(exam.answers, answers);
+    const studentGrade = GradeDomain.grade();
+
+    await this.gradeRepo.saveGrade(
+      { score: studentGrade },
+      userId,
+      examId,
+      payload.attemptId,
+    );
+
+    return {
+      score: studentGrade,
+      isPassed: studentGrade >= exam.passingScore,
+    };
   }
 }

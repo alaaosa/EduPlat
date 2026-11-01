@@ -44,7 +44,7 @@ export class ExamService {
         transaction,
       );
 
-      await this.examRepository.bulkCreateQuestions(questions, exam.id);
+      await this.examRepository.bulkCreateQuestions(questions, exam.id , transaction);
       return exam;
     });
   }

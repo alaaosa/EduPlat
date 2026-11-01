@@ -15,6 +15,8 @@ export class UserActivityService {
       this.groupRepository.findGroupNamesByUserId(userId),
     ]);
 
+    
+
     return { ...activity, groups };
   }
 }

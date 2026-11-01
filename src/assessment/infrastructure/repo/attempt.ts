@@ -2,6 +2,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Attempt } from '../model/attempt';
 import { CreationAttributes } from 'sequelize';
 import { HandleException } from 'src/db/db.service';
+import { AttemptStatus } from 'src/assessment/domain/enum/attempt';
 
 export class AttemptRepository {
   constructor(
@@ -24,6 +25,14 @@ export class AttemptRepository {
       this.attemptModel.findByPk(attemptId, {
         attributes: ['examId', 'startedAt', 'expiresAt'],
       }),
+    );
+  }
+
+ 
+
+  updateAttemptStatus(id: number, status: AttemptStatus) {
+    return this.handleException.handle(async () =>
+      this.attemptModel.update({ status }, { where: { id } }),
     );
   }
 }

@@ -10,10 +10,10 @@ export class GradeEntity {
     private readonly studentAnswers: StudentAnswers,
   ) {
     this.studentMap = new Map(
-      this.studentAnswers.map((a) => [a.id, a.answer.id]),
+      this.studentAnswers.map((a) => [a.id, a.answerId]),
     );
 
-    this.examMap = new Map(this.examQuestions.map((q) => [q.id, q.answer.id]));
+    this.examMap = new Map(this.examQuestions.map((q) => [q.id, q.answerId]));
   }
 
   validateQuestions() {
@@ -43,4 +43,6 @@ export class GradeEntity {
 
     return studentGrade;
   }
+
+
 }

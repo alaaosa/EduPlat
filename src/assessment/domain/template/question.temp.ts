@@ -8,10 +8,10 @@ export type QuestionTemp = {
 
 export type ExamQuestions = {
   id: number;
-  question: string;
-  answer: { id: number };
+  // question: string;
+  answerId: number;
 }[];
 export type StudentAnswers = {
   id: number;
-  answer: { id: number };
+  answerId: number;
 }[];

@@ -13,6 +13,8 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { User } from 'src/user/entities/user.entity';
+import { Exam } from './exam';
+import { Attempt } from './attempt';
 
 @Table({
   tableName: 'student-answers',
@@ -21,6 +23,9 @@ import { User } from 'src/user/entities/user.entity';
     {
       unique: true,
       fields: ['userId', 'questionId'],
+    },
+    {
+      fields: ['examId', 'userId'],
     },
   ],
 })
@@ -44,6 +49,25 @@ export class StudentAnswer extends Model<
 
   @BelongsTo(() => User, { as: 'user', foreignKey: 'userId' })
   declare user: NonAttribute<User>;
+
+  @ForeignKey(() => Exam)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  declare examId: number;
+
+  @BelongsTo(() => Exam, { as: 'exam', foreignKey: 'examId' })
+  declare exam: NonAttribute<Exam>;
+  @ForeignKey(() => Attempt)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  declare attemptId: number;
+
+  @BelongsTo(() => Attempt, { as: 'attempt', foreignKey: 'attemptId' })
+  declare attempt: NonAttribute<Attempt>;
 
   @Column({
     type: DataType.INTEGER,
