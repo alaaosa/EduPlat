@@ -158,8 +158,10 @@ export class Course extends Model<
     defaultValue: 0,
   })
   declare avgRating: CreationOptional<number>;
+
+  /** total duration with hours */
   @Column({
-    type: DataType.FLOAT,
+    type: DataType.INTEGER,
     defaultValue: 0,
   })
   declare total_duration: CreationOptional<number>;
@@ -202,8 +204,6 @@ export class Course extends Model<
 
   @HasMany(() => Progress, { as: 'progresses' })
   declare progresses: NonAttribute<Progress[]>;
-
-
 
   @DeletedAt
   declare deletedAt: CreationOptional<Date | null>;

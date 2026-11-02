@@ -360,9 +360,7 @@ export class CourseRepository {
     );
   }
 
-  findCoursesToHome(){
-
-  }
+  findCoursesToHome() {}
 
   async findCheckOutData(courseId: number) {
     return this.handleException.handle(async () =>
@@ -719,8 +717,8 @@ export class CourseRepository {
     return this.handleException.handle(async () => {
       return this.courseModel.findAll({
         where: { status: 'PUBLISHED' },
-        limit ,
-        order : this.sequelize.random(),
+        limit,
+        order: this.sequelize.random(),
         attributes: [
           'id',
           'title',
@@ -863,7 +861,7 @@ export class CourseRepository {
     transaction?: Transaction,
   ) {
     return this.handleException.handle(async () => {
-      return this.courseModel.update(
+      return this.courseModel.increment(
         { total_duration: duration },
         {
           where: { id: courseId },
@@ -964,5 +962,29 @@ export class CourseRepository {
         where: { instructerId: instructorId, status: CourseStatus.PUBLISHED },
       });
     });
+  }
+
+  getInformationForCertificate(courseId: number) {
+    return this.handleException.handle(async () =>
+      this.courseModel.findByPk(courseId, {
+        attributes: ['title', 'total_duration'],
+        include: [
+          {
+            model: Instructer,
+            as: 'instructor',
+            attributes: [],
+            required: true,
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['name'],
+                required: true,
+              },
+            ],
+          },
+        ],
+      }),
+    );
   }
 }

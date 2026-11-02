@@ -3,6 +3,7 @@ import { Attempt } from '../model/attempt';
 import { CreationAttributes } from 'sequelize';
 import { HandleException } from 'src/db/db.service';
 import { AttemptStatus } from 'src/assessment/domain/enum/attempt';
+import { Exam } from '../model/exam';
 
 export class AttemptRepository {
   constructor(
@@ -27,8 +28,20 @@ export class AttemptRepository {
       }),
     );
   }
-
- 
+  findAttemptDetailsToSubmit(attemptId: number) {
+    return this.handleException.handle(async () =>
+      this.attemptModel.findByPk(attemptId, {
+        attributes: ['examId', 'startedAt', 'expiresAt'],
+        include: [
+          {
+            model: Exam,
+            as: 'exam',
+            attributes: ['type'],
+          },
+        ],
+      }),
+    );
+  }
 
   updateAttemptStatus(id: number, status: AttemptStatus) {
     return this.handleException.handle(async () =>

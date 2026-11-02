@@ -44,6 +44,7 @@ export class AuthService {
 
     const publicId = `STD-${crypto.randomUUID().split('-')[0].toUpperCase()}`;
     const newUser = await this.sequelize.transaction(async (transaction) => {
+      const x = hashPassword(password)
       const user = await this.userRepository.create(
         {
           name,

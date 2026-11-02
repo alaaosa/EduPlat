@@ -21,10 +21,17 @@ import { EnrollmentModule } from 'src/enrollment/enrollment.module';
     CourseProgressModule,
     AssessmentModule,
     EnrollmentModule,
-    forwardRef(() => MuxModule),
+    MuxModule,
   ],
   controllers: [LessonController],
-  providers: [LessonService, LessonRepository, VideoRepository, VideoHandler, LessonHandler, HandleException],
+  providers: [
+    LessonService,
+    LessonRepository,
+    VideoRepository,
+    VideoHandler,
+    LessonHandler,
+    HandleException,
+  ],
   exports: [LessonRepository, VideoHandler],
 })
 export class LessonModule {}

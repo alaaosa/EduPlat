@@ -1,12 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
 import { Browser } from 'puppeteer';
 import { BrowserService } from './browser.service';
-import { CertificateType } from 'src/learning/course/domain/enums';
-import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 import { OnEvent } from '@nestjs/event-emitter';
+import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import { RedisService } from 'src/redis/redis.service';
+import { ExamRecord } from 'src/assessment/application/helpers';
+import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 
 interface IData {
   success: boolean;
@@ -19,16 +25,49 @@ interface IData {
 @Injectable()
 export class GenerateTemplateService {
   constructor(
-    // private readonly courseRepo: CourseRepository,
     private readonly browserService: BrowserService,
+    private readonly redisService: RedisService,
+    private readonly examRecord: ExamRecord,
+    private readonly courseRepo: CourseRepository,
   ) {}
 
-  @OnEvent('assessmentGraded')
-  async generateCertificateTemplate(
-    data: IData,
-    // certificateType: CertificateType,
-    // courseId: number,
-  ) {
+  @OnEvent('exam.final.graded')
+  async generateCertificateTemplate(payload: {
+    idempotency_key: string;
+    studentName: string;
+    examId: number;
+    type: ExamTypes;
+    isPassed: boolean;
+    score: number;
+  }) {
+    const result = await this.redisService.client.set(
+      payload.idempotency_key,
+      'true',
+      'EX',
+      60 * 60,
+      'NX',
+    );
+
+    if (!result) return;
+
+    const courseId = await this.examRecord.findeCourseIdBasedExamType(
+      payload.type,
+      payload.examId,
+    );
+
+    const course = await this.courseRepo.getInformationForCertificate(courseId);
+
+    if (!course)
+      throw new BadRequestException("can't working on your certificate");
+
+    const data: IData = {
+      success: payload.isPassed,
+      courseName: course.title,
+      instructorName: course.instructor.user.name,
+      numOfHours: course.total_duration,
+      studentName: payload.studentName,
+    };
+
     if (data.success == false) {
       return this.generatePdf('certificate_attendance.html', data);
     }

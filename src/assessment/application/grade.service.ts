@@ -6,11 +6,12 @@ import {
 import { GradeRepository } from '../infrastructure/repo/grade';
 import { StudentAnswerDTO } from '../presentation/dto/student-answer';
 import { ExamMap } from './mappers/exam-map';
-import { ExamTypes } from '../domain/enum/types-of-exam';
 import { RedisService } from 'src/redis/redis.service';
 import { ExamRepository } from '../infrastructure/repo/exam.repo';
 import { GradeEntity } from '../domain/entity/grade';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { ExamTypes } from '../domain/enum/types-of-exam';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class GradeService {
@@ -19,6 +20,7 @@ export class GradeService {
     private readonly examRepo: ExamRepository,
     private readonly examMap: ExamMap,
     private readonly redisService: RedisService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async saveStudentAnswer(
@@ -27,9 +29,12 @@ export class GradeService {
     examId: number,
     attemptId: number,
   ) {
-    const results = await this.redisService.client.get(
-      `exam-${userId}-${attemptId}`,
-    );
+    const results = await this.redisService.client
+      .get(`exam-${userId}-${attemptId}`)
+      .catch((err) => {
+        throw new BadRequestException('Error saving answer');
+      });
+
     if (!results) {
       await this.examMap.getDataForExam(dto.examType, examId, userId);
     } else {
@@ -66,6 +71,8 @@ export class GradeService {
     examId: number;
     userId: number;
     attemptId: number;
+    studentName: string;
+    type: string;
   }) {
     const result = await this.redisService.client.set(
       `${payload.idempotency_key}`,
@@ -76,7 +83,7 @@ export class GradeService {
     );
 
     if (!result) return;
-    
+
     const { examId, userId } = payload;
     const [exam, answers] = await Promise.all([
       this.examRepo.findByExamIdToGrade(examId),
@@ -98,9 +105,23 @@ export class GradeService {
       payload.attemptId,
     );
 
+    const isPassed = studentGrade >= exam.passingScore;
+    const event = `exam.${payload.type}.graded`;
+    if (payload.type === ExamTypes.FINAL) {
+      this.eventEmitter.emit(event, {
+        idempotency_key: randomUUID(),
+        studentName: payload.studentName,
+        examId,
+        type: payload.type,
+        isPassed,
+        score: studentGrade,
+      });
+    } else {
+      /// HERE => LOGIC OF GRADED QUIZ
+    }
     return {
       score: studentGrade,
-      isPassed: studentGrade >= exam.passingScore,
+      isPassed,
     };
   }
 }

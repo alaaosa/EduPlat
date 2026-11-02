@@ -15,8 +15,7 @@ export class VideoDto {
   @IsPositive()
   declare duration: number;
 
-  @IsString()
-  declare status: string;
+
 }
 
 export class CreateVideoDto {

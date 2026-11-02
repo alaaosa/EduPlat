@@ -1,15 +1,19 @@
-import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
 import { CalculateProgressDto, VideoDto } from '../dto/video.dto';
 import { VideoRepository } from '../repo/video.repo';
 import { Sequelize, Transaction } from 'sequelize';
 import { MuxService } from 'src/mux/mux.service';
 import { InjectConnection } from '@nestjs/sequelize';
+import { VideoStatus } from 'src/mux/enum/video';
 
 @Injectable()
 export class VideoHandler {
   constructor(
     private videoRepository: VideoRepository,
-    @Inject(forwardRef(() => MuxService)) private readonly muxService: MuxService,
+    private readonly muxService: MuxService,
     @InjectConnection() private readonly sequelize: Sequelize,
   ) {}
 
@@ -19,6 +23,12 @@ export class VideoHandler {
   }
 
   async createUrl(instructerId: number, lessonId: number) {
+    const upload = await this.videoRepository.findUploadStatus(lessonId);
+    if (upload && upload.status === VideoStatus.PROCESSING)
+      throw new BadRequestException(
+        "can't upload video to this lesson , there exist processing to the previous video",
+      );
+
     const url = await this.muxService.createUploadUrl(instructerId, lessonId);
     return url;
   }

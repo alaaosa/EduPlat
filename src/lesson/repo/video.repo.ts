@@ -8,6 +8,8 @@ import { HandleException } from 'src/db/db.service';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { CreationAttributes, LOCK, Sequelize, Transaction } from 'sequelize';
 import { Progress } from '../models/lesson.user';
+import { Upload } from '../models/types/uploads';
+import { VideoStatus } from 'src/mux/enum/video';
 
 @Injectable()
 export class VideoRepository {
@@ -17,7 +19,7 @@ export class VideoRepository {
     private readonly videoModel: typeof Video,
     @InjectModel(Progress)
     private readonly progressModel: typeof Progress,
-    @InjectConnection() private readonly sequelize: Sequelize,
+    @InjectModel(Upload) private readonly uploadModel: typeof Upload,
   ) {}
 
   async create(
@@ -114,6 +116,24 @@ export class VideoRepository {
       this.progressModel.count({
         where: { completed, videoId: videoIds, userId },
       }),
+    );
+  }
+
+  createUploadInformation(data: Omit<CreationAttributes<Upload>, ''>) {
+    return this.handleException.handle(async () =>
+      this.uploadModel.create(data),
+    );
+  }
+
+  deleteUploadInformation(lessonId: number, transaction?: Transaction) {
+    return this.handleException.handle(async () =>
+      this.uploadModel.destroy({ where: { lessonId }, transaction }),
+    );
+  }
+
+  findUploadStatus(lessonId: number) {
+    return this.handleException.handle(async () =>
+      this.uploadModel.findOne({ where: { lessonId }, attributes: ['status'] }),
     );
   }
 }

@@ -1,28 +1,28 @@
 import Mux from '@mux/mux-node';
 import {
+  BadGatewayException,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
   UnauthorizedException,
-  forwardRef,
 } from '@nestjs/common';
 import { VideoStatus } from './enum/video';
 import { LessonRepository } from 'src/lesson/repo/lesson.repo';
 import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
 import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { VideoHandler } from 'src/lesson/services/video.service';
+import { VideoRepository } from 'src/lesson/repo/video.repo';
 
 @Injectable()
 export class MuxService {
   private readonly logger = new Logger(MuxService.name);
   constructor(
     @Inject('MUX_CLIENT') private mux: Mux,
-    @Inject(forwardRef(() => VideoHandler)) private videoService: VideoHandler,
     private lessonRepository: LessonRepository,
     private readonly courseRepository: CourseRepository,
     @InjectConnection() private sequlize: Sequelize,
+    private readonly videoRepository: VideoRepository,
   ) {}
 
   async createUploadUrl(instructerId: number, lessonId: number) {
@@ -36,17 +36,28 @@ export class MuxService {
     if (lesson_details.section.course.instructerId !== instructerId)
       throw new UnauthorizedException('not allowed ');
 
-    const upload = await this.mux.video.uploads.create({
-      new_asset_settings: {
-        playback_policies: ['signed'],
-        encoding_tier: 'baseline',
-        passthrough: JSON.stringify({
-          lessonId,
-          courseId,
-        }),
-      },
-      cors_origin: '*',
+    const upload = await this.mux.video.uploads
+      .create({
+        new_asset_settings: {
+          playback_policies: ['signed'],
+          encoding_tier: 'baseline',
+          passthrough: JSON.stringify({
+            lessonId,
+            courseId,
+          }),
+        },
+        cors_origin: '*',
+      })
+      .catch((err) => {
+        throw new BadGatewayException(`err in mux service : ${err}`);
+      });
+
+    await this.videoRepository.createUploadInformation({
+      uploadId: upload.id,
+      lessonId,
+      status: VideoStatus.PROCESSING,
     });
+
     return upload;
   }
 
@@ -107,24 +118,25 @@ export class MuxService {
       courseId: number;
     };
 
-    if (!asset.playback_ids?.[0]?.id)
-      throw new NotFoundException(`No playback ID found for asset ${asset.id}`);
+    if (!asset.playback_ids![0].id)
+      throw new NotFoundException(`No playback ID found for asset `);
 
     return this.sequlize.transaction(async (transaction) => {
-      await this.videoService.create(
+      await this.videoRepository.create(
         {
           lessonId: lessonId,
           playbackId: asset.playback_ids![0].id,
           muxAssetId: asset.id,
-          duration: Math.round(asset.duration ?? 0),
-          status: VideoStatus.READY,
+          duration: Math.round(asset.duration! / 60),
         },
         transaction,
       );
 
+      await this.videoRepository.deleteUploadInformation(lessonId, transaction);
+
       await this.courseRepository.updateCourseDuration(
         courseId,
-        Math.round(asset.duration ?? 0),
+        Math.round(asset.duration! / 3600),
         transaction,
       );
     });

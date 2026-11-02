@@ -87,11 +87,12 @@ export class AttemptService {
       throw new ForbiddenException('exam time finished');
   }
 
-  async submit(attemptId: number, userId: number) {
-    const attempt = await this.attemptRepository.findAttemptDetails(attemptId);
+  async submit(attemptId: number, userId: number, studentName: string) {
+    const attempt =
+      await this.attemptRepository.findAttemptDetailsToSubmit(attemptId);
     if (!attempt) throw new NotFoundException('attempt not found');
 
-    if(attempt.status !== AttemptStatus.IN_PROGRESS)
+    if (attempt.status !== AttemptStatus.IN_PROGRESS)
       throw new ForbiddenException('attempt not in progress');
 
     await this.attemptRepository.updateAttemptStatus(
@@ -105,7 +106,13 @@ export class AttemptService {
         throw new BadRequestException(err);
       });
 
-      this.eventEmmitter.emit('exam.submitted', {idempotency_key :randomUUID() ,  examId: attempt.examId, userId, attemptId });
-
+    this.eventEmmitter.emit(`exam.submitted`, {
+      idempotency_key: randomUUID(),
+      examId: attempt.examId,
+      userId,
+      attemptId,
+      studentName,
+      type: attempt.exam.type,
+    });
   }
 }

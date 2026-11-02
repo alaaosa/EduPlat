@@ -1,12 +1,11 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MuxService } from './mux.service';
 import { MuxController } from './mux.controller';
-import { LessonModule } from '../lesson/lesson.module';
 import { CourseProgressModule } from '../learning/course/course-progress.module';
 import Mux from '@mux/mux-node';
 
 @Module({
-  imports: [forwardRef(() => LessonModule), CourseProgressModule],
+  imports: [ CourseProgressModule],
   controllers: [MuxController],
   providers: [
     MuxService,

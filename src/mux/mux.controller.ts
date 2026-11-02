@@ -2,14 +2,11 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
   Param,
   Delete,
   Req,
   type RawBodyRequest,
   Inject,
-  ParseIntPipe,
   Headers,
 } from '@nestjs/common';
 import { MuxService } from './mux.service';

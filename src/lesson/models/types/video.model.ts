@@ -25,7 +25,7 @@ import { Progress } from '../lesson.user';
       fields: ['lessonId'],
     },
   ],
-}) 
+})
 export class Video extends Model<
   InferAttributes<Video>,
   InferCreationAttributes<Video>
@@ -58,13 +58,14 @@ export class Video extends Model<
   })
   declare playbackId: CreationOptional<string>;
 
-  @Column({ type: DataType.FLOAT })
+  /** duration about video with minutes */
+  @Column({ type: DataType.INTEGER })
   declare duration: CreationOptional<number>;
 
-  @Column({
-    type: DataType.STRING,
-  })
-  declare status: CreationOptional<string>;
+  // @Column({
+  //   type: DataType.STRING,
+  // })
+  // declare status: CreationOptional<string>;
 
   @HasOne(() => Progress)
   declare progress: NonAttribute<Progress>;
