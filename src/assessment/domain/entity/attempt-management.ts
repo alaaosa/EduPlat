@@ -1,5 +1,5 @@
-import { AttemptStatus } from '../enum/attempt';
-import { AssessmentDomainError } from '../err/domain.err';
+import { AttemptStatus } from '../shared/enum/attempt';
+import { AssessmentDomainError } from '../shared/err/domain.err';
 
 export class AttemptEntity {
   private constructor(

@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Attempt } from '../model/attempt';
 import { CreationAttributes } from 'sequelize';
 import { HandleException } from 'src/db/db.service';
-import { AttemptStatus } from 'src/assessment/domain/enum/attempt';
+import { AttemptStatus } from 'src/assessment/domain/shared/enum/attempt';
 import { Exam } from '../model/exam';
 
 export class AttemptRepository {

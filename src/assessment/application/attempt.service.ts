@@ -6,11 +6,11 @@ import {
 } from '@nestjs/common';
 import { AttemptRepository } from '../infrastructure/repo/attempt';
 import { ExamRepository } from '../infrastructure/repo/exam.repo';
-import { AttemptStatus } from '../domain/enum/attempt';
+import { AttemptStatus } from '../domain/shared/enum/attempt';
 import { InjectQueue } from '@nestjs/bullmq';
 import { queueNames } from 'src/common/queue';
 import { Queue } from 'bullmq';
-import { ExamTypes } from '../domain/enum/types-of-exam';
+import { ExamTypes } from '../domain/shared/enum/types-of-exam';
 import { ExamMap } from './mappers/exam-map';
 import { RedisService } from 'src/redis/redis.service';
 import { GradeService } from './grade.service';

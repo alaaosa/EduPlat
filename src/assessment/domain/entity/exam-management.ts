@@ -1,5 +1,5 @@
-import { ExamTypes } from '../enum/types-of-exam';
-import { AssessmentDomainError } from '../err/domain.err';
+import { ExamTypes } from '../shared/enum/types-of-exam';
+import { AssessmentDomainError } from '../shared/err/domain.err';
 
 export class ExamEntity {
   constructor(

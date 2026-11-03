@@ -1,4 +1,4 @@
-import { AssessmentDomainError } from '../err/domain.err';
+import { AssessmentDomainError } from '../shared/err/domain.err';
 import { ExamQuestions, StudentAnswers } from '../template/question.temp';
 
 export class GradeEntity {
@@ -43,6 +43,4 @@ export class GradeEntity {
 
     return studentGrade;
   }
-
-
 }

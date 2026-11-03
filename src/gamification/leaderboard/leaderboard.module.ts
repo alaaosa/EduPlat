@@ -1,9 +1,9 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { LeaderboardService } from './leaderboard.service';
-import { LeaderboardController } from './leaderboard.controller';
+import { LeaderboardService } from '../../gamification2/application/leaderboard.service';
+import { LeaderboardController } from '../../gamification2/presentation/controllers/leaderboard.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { Leaderboard } from './entities/leaderboard.entity';
-import { LeaderboardRepository } from './repo/leaderboard.repo';
+import { Leaderboard } from '../../gamification2/infrastructure/models/leaderboard/leaderboard';
+import { LeaderboardRepository } from '../../gamification2/infrastructure/repo/leaderboard.repo';
 import { HandleException } from 'src/db/db.service';
 import { UserModule } from 'src/user/user.module';
 

@@ -6,7 +6,7 @@ import { CreationAttributes, Sequelize, Transaction, where } from 'sequelize';
 import { Mcq_TF_Question } from '../model/question';
 import { Mcq_TF_Answer } from '../model/answer';
 import { model } from 'mongoose';
-import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 import { Attempt } from '../model/attempt';
 import { Grade } from '../model/grade';
 

@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { AnswerDTO } from './answer';
-import { QuestionTypes } from 'src/assessment/domain/enum/types-of-questions';
+import { QuestionTypes } from 'src/assessment/domain/shared/enum/types-of-questions';
 
 function normalizeArray(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;

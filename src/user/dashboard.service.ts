@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { LeaderboardService } from 'src/gamification/leaderboard/leaderboard.service';
-import { StreakService } from 'src/gamification/streak/streak.service';
+import { LeaderboardService } from 'src/gamification2/application/leaderboard.service';
+import { StreakService } from 'src/gamification2/application/streak.service';
 import { EnrollmentRepository } from 'src/enrollment/repo/enrollment.repo';
 
 export interface StudentDashboardResult {

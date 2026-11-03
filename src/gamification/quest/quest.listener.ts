@@ -3,9 +3,15 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Queue } from 'bullmq';
 import { queueNames } from 'src/common/queue';
-import { BadgeEventType, BadgeQueueNames } from '../shared/enum/badge.enums';
-import { payloadDTO } from './dto/quest';
-import { QuestEventNames, QuestJobNames } from '../shared/enum/quest.enum';
+import {
+  BadgeEventType,
+  BadgeQueueNames,
+} from '../../gamification2/domain/shared/enum/badge.enums';
+import { payloadDTO } from '../../gamification2/presentation/dto/quest';
+import {
+  QuestEventNames,
+  QuestJobNames,
+} from '../../gamification2/domain/shared/enum/quest.enum';
 
 @Injectable()
 export class QuestEventListener {

@@ -10,8 +10,9 @@ import { RedisService } from 'src/redis/redis.service';
 import { ExamRepository } from '../infrastructure/repo/exam.repo';
 import { GradeEntity } from '../domain/entity/grade';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { ExamTypes } from '../domain/enum/types-of-exam';
+import { ExamTypes } from '../domain/shared/enum/types-of-exam';
 import { randomUUID } from 'crypto';
+import { ExamGradedEvent } from '../domain/shared/interfaces';
 
 @Injectable()
 export class GradeService {
@@ -115,7 +116,7 @@ export class GradeService {
         type: payload.type,
         isPassed,
         score: studentGrade,
-      });
+      } satisfies ExamGradedEvent);
     } else {
       /// HERE => LOGIC OF GRADED QUIZ
     }

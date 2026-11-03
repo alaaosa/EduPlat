@@ -12,7 +12,7 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 import { Mcq_TF_Question } from './question';
 import { Attempt } from './attempt';
 

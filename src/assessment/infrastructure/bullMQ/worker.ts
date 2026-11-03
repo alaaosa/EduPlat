@@ -3,7 +3,7 @@ import { Job } from 'bullmq';
 import EventEmitter2 from 'eventemitter2';
 import { queueNames } from 'src/common/queue';
 import { AttemptRepository } from '../repo/attempt';
-import { AttemptStatus } from 'src/assessment/domain/enum/attempt';
+import { AttemptStatus } from 'src/assessment/domain/shared/enum/attempt';
 
 @Processor(queueNames.EXAM)
 export class ExamWorker extends WorkerHost {

@@ -1,5 +1,5 @@
 import { IsEnum, IsInt, IsNumber } from 'class-validator';
-import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 
 export class StudentAnswerDTO {
   @IsNumber()

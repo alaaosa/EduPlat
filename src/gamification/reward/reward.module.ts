@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { RewardService } from './reward.service';
-import { RewardController } from './reward.controller';
+import { RewardService } from '../../gamification2/application/reward.service';
+import { RewardController } from '../../gamification2/presentation/controllers/reward.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { Reward } from './entities/reward.entity';
-import { RewardUser } from './entities/reward.user';
-import { DiscountReward } from './entities/types/discount_reward';
-import { RewardRepository } from './repo/reward.repo';
-import { RewardHandler } from './repo/handler';
+import { Reward } from '../../gamification2/infrastructure/models/reward/reward';
+import { RewardUser } from '../../gamification2/infrastructure/models/reward/reward.user';
+import { DiscountReward } from '../../gamification2/infrastructure/models/reward/types/discount_reward';
+import { RewardRepository } from '../../gamification2/infrastructure/repo/reward.repo';
+import { RewardHandler } from '../../gamification2/application/handlers/reward-handler';
 import { HandleException } from 'src/db/db.service';
 
 @Module({

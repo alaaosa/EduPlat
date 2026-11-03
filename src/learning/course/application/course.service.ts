@@ -25,7 +25,7 @@ import { InstructerRepository } from 'src/instructer/repo/instructor';
 import { StripeGateway } from 'src/payment/infrastructure/stripe/stripe.payment.gateway';
 import { Action } from '../domain/enums/approv-enum';
 import { ExamRepository } from 'src/assessment/infrastructure/repo/exam.repo';
-import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 import EventEmitter2 from 'eventemitter2';
 
 @Injectable()
@@ -193,10 +193,7 @@ export class CourseService {
   }
 
   // update course status by admin
-  async updateCourseStatus(
-    courseId: number,
-    dto: updateCourseStatusDto,
-  ) {
+  async updateCourseStatus(courseId: number, dto: updateCourseStatusDto) {
     const [course, courseInfo] = await Promise.all([
       this.courseRepository.getCourseById(courseId),
       this.courseRepository.getInstructerId(courseId),

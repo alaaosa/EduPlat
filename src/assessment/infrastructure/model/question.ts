@@ -14,7 +14,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Mcq_TF_Answer } from './answer';
-import { QuestionTypes } from 'src/assessment/domain/enum/types-of-questions';
+import { QuestionTypes } from 'src/assessment/domain/shared/enum/types-of-questions';
 import { Exam } from './exam';
 
 /** delete these lines  */

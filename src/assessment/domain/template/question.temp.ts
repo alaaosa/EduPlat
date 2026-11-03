@@ -1,4 +1,4 @@
-import { QuestionTypes } from '../enum/types-of-questions';
+import { QuestionTypes } from '../shared/enum/types-of-questions';
 
 export type QuestionTemp = {
   question: string;

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ExamTypes } from '../enum/types-of-exam';
+import { ExamTypes } from '../shared/enum/types-of-exam';
 import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';
-import { AssessmentDomainError } from '../err/domain.err';
+import { AssessmentDomainError } from '../shared/err/domain.err';
 import { LessonRepository } from 'src/lesson/repo/lesson.repo';
 
 @Injectable()

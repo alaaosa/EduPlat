@@ -3,8 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Queue } from 'bullmq';
 import { queueNames } from 'src/common/queue';
-import { BadgeEventType, BadgeQueueNames } from '../shared/enum/badge.enums';
-import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import {
+  BadgeEventType,
+  BadgeQueueNames,
+} from '../../gamification2/domain/shared/enum/badge.enums';
+import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 
 @Injectable()
 export class BadgeEventListener {

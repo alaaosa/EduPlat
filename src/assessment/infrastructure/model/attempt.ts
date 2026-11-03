@@ -16,7 +16,7 @@ import {
 } from 'sequelize-typescript';
 import { User } from 'src/user/entities/user.entity';
 import { Exam } from './exam';
-import { AttemptStatus } from 'src/assessment/domain/enum/attempt';
+import { AttemptStatus } from 'src/assessment/domain/shared/enum/attempt';
 import { Grade } from './grade';
 
 @Table({
@@ -33,7 +33,6 @@ import { Grade } from './grade';
     {
       fields: ['status', 'expiresAt'],
     },
-    
   ],
 })
 export class Attempt extends Model<

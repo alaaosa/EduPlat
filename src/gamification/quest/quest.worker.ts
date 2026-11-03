@@ -1,12 +1,12 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { queueNames } from 'src/common/queue';
-import { QuestRepository } from './repo/quest.repo';
+import { QuestRepository } from '../../gamification2/infrastructure/repo/quest.repo';
 import { Logger } from '@nestjs/common';
 
 @Processor(queueNames.QUEST, { concurrency: 1 })
 export class QuestWorker extends WorkerHost {
-  private readonly logger = new Logger(QuestWorker.name)
+  private readonly logger = new Logger(QuestWorker.name);
   constructor(private readonly questRepository: QuestRepository) {
     super();
   }

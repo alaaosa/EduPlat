@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ExamRepository } from '../infrastructure/repo/exam.repo';
 import { CreateExamDTO } from '../presentation/dto/exam.dto';
-import { ExamTypes } from '../domain/enum/types-of-exam';
+import { ExamTypes } from '../domain/shared/enum/types-of-exam';
 import { ExamEntity } from '../domain/entity/exam-management';
 import { QuestionEntity } from '../domain/entity/question-management';
 import { InjectConnection } from '@nestjs/sequelize';
@@ -44,7 +44,11 @@ export class ExamService {
         transaction,
       );
 
-      await this.examRepository.bulkCreateQuestions(questions, exam.id , transaction);
+      await this.examRepository.bulkCreateQuestions(
+        questions,
+        exam.id,
+        transaction,
+      );
       return exam;
     });
   }

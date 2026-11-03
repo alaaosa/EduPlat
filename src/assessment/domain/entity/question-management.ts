@@ -1,5 +1,5 @@
-import { QuestionTypes } from '../enum/types-of-questions';
-import { AssessmentDomainError } from '../err/domain.err';
+import { QuestionTypes } from '../shared/enum/types-of-questions';
+import { AssessmentDomainError } from '../shared/err/domain.err';
 import { QuestionTemp } from '../template/question.temp';
 
 export class QuestionEntity {

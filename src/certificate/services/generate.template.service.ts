@@ -9,7 +9,7 @@ import Handlebars from 'handlebars';
 import { Browser } from 'puppeteer';
 import { BrowserService } from './browser.service';
 import { OnEvent } from '@nestjs/event-emitter';
-import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 import { RedisService } from 'src/redis/redis.service';
 import { ExamRecord } from 'src/assessment/application/helpers';
 import { CourseRepository } from 'src/learning/course/infrastructure/persistence/sequelize/course.repo';

@@ -12,7 +12,7 @@ import { MuxModule } from './mux/mux.module';
 import { RedisModule } from './redis/redis.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { PaymentModule } from './payment/payment.module';
-import { GamificationModule } from './gamification/gamification.module';
+import { GamificationModule } from './gamification2/gamification.module';
 import { DbModule } from './db/db.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';

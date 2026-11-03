@@ -19,11 +19,11 @@ import type {
   NonAttribute,
 } from 'sequelize';
 import { CouponUser } from 'src/promotion/infrastructure/prese/models/coupon/coupon.user';
-import { Reward } from 'src/gamification/reward/entities/reward.entity';
-import { UserBadge } from 'src/gamification/badge/entities/badge.user';
-import { UserQuest } from 'src/gamification/quest/entities/user.quest';
-import { Streak } from 'src/gamification/streak/entities/streak.entity';
-import { Leaderboard } from 'src/gamification/leaderboard/entities/leaderboard.entity';
+import { Reward } from 'src/gamification2/infrastructure/models/reward/reward';
+import { UserBadge } from 'src/gamification2/infrastructure/models/badge/badge.user';
+import { UserQuest } from 'src/gamification2/infrastructure/models/quest/user.quest';
+import { Streak } from 'src/gamification2/infrastructure/models/streak/streak';
+import { Leaderboard } from 'src/gamification2/infrastructure/models/leaderboard/leaderboard';
 
 @Table({
   tableName: 'users',

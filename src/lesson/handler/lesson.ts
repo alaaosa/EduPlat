@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { LessonType } from '../shared/enum/lesson.type';
 import { VideoHandler } from '../services/video.service';
 import { ExamService } from 'src/assessment/application/exam.service';
-import { ExamTypes } from 'src/assessment/domain/enum/types-of-exam';
+import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 
 @Injectable()
 export class LessonHandler {
