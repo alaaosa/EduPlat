@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { CourseProgressModule } from './course-progress.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { CourseController } from './presentation/controller/course.controller';
 import { SectionController } from './presentation/controller/section.controller';
@@ -12,13 +11,25 @@ import { InstructerModule } from '../../instructer/instructer.module';
 import { PaymentModule } from '../../payment/payment.module';
 import { EnrollmentModule } from '../../enrollment/enrollment.module';
 import { MeilisearchModule } from '../../meilisearch/meilisearch.module';
-import { HandleException } from '../../db/db.service';
 import { DeleteRejectedCourseReasons } from './infrastructure/job/schedule/delete-rejected-reason';
+import { EVENT_EMITTER2 } from './domain/consts';
+import { PushCourseEvent } from './infrastructure/event-emitter';
+import { Course } from './infrastructure/persistence/models/course.entity';
+import { CourseAudience } from './infrastructure/persistence/models/course_items/course.audience';
+import { CourseGoal } from './infrastructure/persistence/models/course_items/course.goal';
+import { CourseRequirement } from './infrastructure/persistence/models/course_items/course.requirements';
+import { CourseReject } from './infrastructure/persistence/models/course.reject';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Section]),
-    CourseProgressModule,
+    SequelizeModule.forFeature([
+      Course,
+      CourseAudience,
+      CourseGoal,
+      CourseRequirement,
+      CourseReject,
+      Section,
+    ]),
     AssessmentModule,
     InstructerModule,
     PaymentModule,
@@ -26,7 +37,15 @@ import { DeleteRejectedCourseReasons } from './infrastructure/job/schedule/delet
     EnrollmentModule,
   ],
   controllers: [CourseController, SectionController],
-  providers: [CourseService, SectionService, SectionRepository, HandleException, DeleteRejectedCourseReasons],
-  exports: [CourseProgressModule],
+  providers: [
+    CourseService,
+    SectionService,
+    SectionRepository,
+    DeleteRejectedCourseReasons,
+    {
+      provide: EVENT_EMITTER2,
+      useClass: PushCourseEvent,
+    },
+  ],
 })
 export class CourseModule {}

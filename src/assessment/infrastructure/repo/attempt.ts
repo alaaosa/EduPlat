@@ -31,7 +31,7 @@ export class AttemptRepository {
   findAttemptDetailsToSubmit(attemptId: number) {
     return this.handleException.handle(async () =>
       this.attemptModel.findByPk(attemptId, {
-        attributes: ['examId', 'startedAt', 'expiresAt'],
+        attributes: ['examId', 'userId', 'status'],
         include: [
           {
             model: Exam,

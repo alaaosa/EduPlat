@@ -10,8 +10,6 @@ import { OTPRepository } from './repo/otp';
 import { HandleException } from 'src/db/db.service';
 import { UserState } from './entities/user.states';
 import { CourseProgressModule } from 'src/learning/course/course-progress.module';
-import { LeaderboardModule } from 'src/gamification/leaderboard/leaderboard.module';
-import { StreakModule } from 'src/gamification/streak/streak.module';
 import { DashboardResolver } from './dashboard.resolver';
 import { StudentDashboardService } from './dashboard.service';
 import { UserWorker } from './worker';
@@ -23,8 +21,6 @@ import { EmailProvider } from 'src/common/providers/email.provider';
     SequelizeModule.forFeature([UserSetting, User, OTP, UserState]),
     EnrollmentModule,
     CourseProgressModule,
-    forwardRef(() => LeaderboardModule),
-    StreakModule,
   ],
   controllers: [UserController],
   providers: [

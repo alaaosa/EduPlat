@@ -25,6 +25,7 @@ import {
 } from '../../domain/enums';
 import { PartialType } from '@nestjs/mapped-types';
 import { Action } from '../../domain/enums/approv-enum';
+import { TransformToArray } from 'src/common/functions/transform';
 
 // @Transform(({ value }) => (value ? value.trim() : value))
 
@@ -77,15 +78,7 @@ export class CreateCourseDto {
   image!: ThumbnailDto;
 
   @IsDefined()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value;
-    } else if (typeof value === 'string') {
-      const parsedValue = JSON.parse(value);
-      return Array.isArray(parsedValue) ? parsedValue : [parsedValue];
-    }
-    return [value];
-  })
+  @Transform(({ value }) => TransformToArray(value))
   @IsArray({ message: 'Requirements must be an array' })
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
@@ -93,15 +86,7 @@ export class CreateCourseDto {
   requirements!: CourseRequirmentsDto[];
 
   @IsDefined()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value;
-    } else if (typeof value === 'string') {
-      const parsedValue = JSON.parse(value);
-      return Array.isArray(parsedValue) ? parsedValue : [parsedValue];
-    }
-    return [value];
-  })
+  @Transform(({ value }) => TransformToArray(value))
   @IsArray({ message: 'Goals must be an array' })
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
@@ -109,15 +94,7 @@ export class CreateCourseDto {
   goals!: CourseGoalDto[];
 
   @IsDefined()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) {
-      return value;
-    } else if (typeof value === 'string') {
-      const parsedValue = JSON.parse(value);
-      return Array.isArray(parsedValue) ? parsedValue : [parsedValue];
-    }
-    return [value];
-  })
+  @Transform(({ value }) => TransformToArray(value))
   @IsArray({ message: 'Audience must be an array' })
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
@@ -141,7 +118,7 @@ export class updateCourseStatusDto {
   instructerId!: number;
 
   @IsEmail()
-  instructerEmail !: string
+  instructerEmail!: string;
 }
 
 export class AddPriceDTO {

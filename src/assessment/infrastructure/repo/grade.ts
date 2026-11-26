@@ -48,7 +48,7 @@ export class GradeRepository {
     attemptId: number,
   ) {
     return this.handleException.handle(async () =>
-      this.gradeModel.create({ ...data, userId, examId, attemptId }),
+      this.gradeModel.upsert({ ...data, userId, examId, attemptId }),
     );
   }
 }

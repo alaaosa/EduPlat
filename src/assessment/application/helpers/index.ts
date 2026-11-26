@@ -7,7 +7,7 @@ import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 import { LessonRepository } from 'src/lesson/repo/lesson.repo';
 
 @Injectable()
-export class ExamRecord {
+export class ExamHelper {
   constructor(private readonly lessonRepo: LessonRepository) {}
 
   async findeCourseIdBasedExamType(type: ExamTypes, id: number) {
@@ -29,4 +29,6 @@ export class ExamRecord {
 
     return handler(id);
   }
+
+  async 
 }

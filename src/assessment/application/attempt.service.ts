@@ -15,7 +15,6 @@ import { ExamMap } from './mappers/exam-map';
 import { RedisService } from 'src/redis/redis.service';
 import { GradeService } from './grade.service';
 import EventEmitter2 from 'eventemitter2';
-import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AttemptService {
@@ -91,14 +90,21 @@ export class AttemptService {
     const attempt =
       await this.attemptRepository.findAttemptDetailsToSubmit(attemptId);
     if (!attempt) throw new NotFoundException('attempt not found');
+    if (attempt.userId !== userId)
+      throw new ForbiddenException('attempt does not belong to this user');
 
-    if (attempt.status !== AttemptStatus.IN_PROGRESS)
+    if (
+      attempt.status !== AttemptStatus.IN_PROGRESS &&
+      attempt.status !== AttemptStatus.SUBMITTED
+    )
       throw new ForbiddenException('attempt not in progress');
 
-    await this.attemptRepository.updateAttemptStatus(
-      attemptId,
-      AttemptStatus.SUBMITTED,
-    );
+    if (attempt.status === AttemptStatus.IN_PROGRESS) {
+      await this.attemptRepository.updateAttemptStatus(
+        attemptId,
+        AttemptStatus.SUBMITTED,
+      );
+    }
 
     await this.redisService.client
       .del(`exam-${userId}-${attemptId}`)
@@ -106,8 +112,8 @@ export class AttemptService {
         throw new BadRequestException(err);
       });
 
-    this.eventEmmitter.emit(`exam.submitted`, {
-      idempotency_key: randomUUID(),
+    await this.eventEmmitter.emitAsync(`exam.submitted`, {
+      idempotency_key: `exam-submitted-${attempt.id}`,
       examId: attempt.examId,
       userId,
       attemptId,

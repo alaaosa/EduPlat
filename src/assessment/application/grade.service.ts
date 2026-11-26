@@ -11,8 +11,7 @@ import { ExamRepository } from '../infrastructure/repo/exam.repo';
 import { GradeEntity } from '../domain/entity/grade';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { ExamTypes } from '../domain/shared/enum/types-of-exam';
-import { randomUUID } from 'crypto';
-import { ExamGradedEvent } from '../domain/shared/interfaces';
+import { ExamGradedEventData } from '../domain/shared/interfaces';
 
 @Injectable()
 export class GradeService {
@@ -85,44 +84,49 @@ export class GradeService {
 
     if (!result) return;
 
-    const { examId, userId } = payload;
-    const [exam, answers] = await Promise.all([
-      this.examRepo.findByExamIdToGrade(examId),
-      this.gradeRepo.getStudentAnswersByExamIdAndUserId(examId, userId),
-    ]).catch((err) => {
-      throw new BadRequestException('Error grading exam');
-    });
+    try {
+      const { examId, userId } = payload;
+      const [exam, answers] = await Promise.all([
+        this.examRepo.findByExamIdToGrade(examId),
+        this.gradeRepo.getStudentAnswersByExamIdAndUserId(examId, userId),
+      ]).catch(() => {
+        throw new BadRequestException('Error grading exam');
+      });
 
-    if (!exam || !answers || answers.length == 0)
-      throw new BadRequestException('Exam not found');
+      if (!exam || !answers || answers.length === 0)
+        throw new BadRequestException('Exam not found');
 
-    const GradeDomain = new GradeEntity(exam.answers, answers);
-    const studentGrade = GradeDomain.grade();
+      const GradeDomain = new GradeEntity(exam.answers, answers);
+      const studentGrade = GradeDomain.grade();
 
-    await this.gradeRepo.saveGrade(
-      { score: studentGrade },
-      userId,
-      examId,
-      payload.attemptId,
-    );
-
-    const isPassed = studentGrade >= exam.passingScore;
-    const event = `exam.${payload.type}.graded`;
-    if (payload.type === ExamTypes.FINAL) {
-      this.eventEmitter.emit(event, {
-        idempotency_key: randomUUID(),
-        studentName: payload.studentName,
+      await this.gradeRepo.saveGrade(
+        { score: studentGrade },
+        userId,
         examId,
-        type: payload.type,
-        isPassed,
-        score: studentGrade,
-      } satisfies ExamGradedEvent);
-    } else {
-      /// HERE => LOGIC OF GRADED QUIZ
+        payload.attemptId,
+      );
+
+      const isPassed = studentGrade >= exam.passingScore;
+      if (payload.type === ExamTypes.FINAL) {
+        await this.eventEmitter.emitAsync(
+          `exam.${payload.type}.graded`,
+          {
+            idempotency_key: payload.idempotency_key,
+            studentName: payload.studentName,
+            examId,
+            type: payload.type,
+            isPassed,
+            score: studentGrade,
+            userId,
+          } satisfies ExamGradedEventData,
+        );
+      }
+
+      return { score: studentGrade, isPassed };
+    } catch (error) {
+      // Allow a retry to grade again if persistence or event delivery failed.
+      await this.redisService.client.del(payload.idempotency_key).catch(() => 0);
+      throw error;
     }
-    return {
-      score: studentGrade,
-      isPassed,
-    };
   }
 }

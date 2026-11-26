@@ -19,11 +19,11 @@ import type {
   NonAttribute,
 } from 'sequelize';
 import { CouponUser } from 'src/promotion/infrastructure/prese/models/coupon/coupon.user';
-import { Reward } from 'src/gamification2/infrastructure/models/reward/reward';
-import { UserBadge } from 'src/gamification2/infrastructure/models/badge/badge.user';
-import { UserQuest } from 'src/gamification2/infrastructure/models/quest/user.quest';
-import { Streak } from 'src/gamification2/infrastructure/models/streak/streak';
-import { Leaderboard } from 'src/gamification2/infrastructure/models/leaderboard/leaderboard';
+import { Reward } from 'src/gamification/infrastructure/models/reward/reward';
+import { UserBadge } from 'src/gamification/infrastructure/models/badge/badge.user';
+import { UserQuest } from 'src/gamification/infrastructure/models/quest/user.quest';
+import { Streak } from 'src/gamification/infrastructure/models/streak/streak';
+import { Leaderboard } from 'src/gamification/infrastructure/models/leaderboard/leaderboard';
 
 @Table({
   tableName: 'users',
@@ -33,6 +33,11 @@ import { Leaderboard } from 'src/gamification2/infrastructure/models/leaderboard
       fields: ['email', 'role', 'isActivited'],
     },
   ],
+  defaultScope: {
+    attributes: {
+      exclude: ['password'],
+    },
+  },
 
   // defaultScope: {
   //   attributes: { exclude: ['password'] },

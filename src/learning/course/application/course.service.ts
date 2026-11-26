@@ -3,8 +3,8 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CourseRepository } from '../infrastructure/persistence/sequelize/course.repo';
@@ -19,29 +19,28 @@ import { InjectConnection } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { MeilisearchService } from 'src/meilisearch/meilisearch.service';
 import { EnrollmentRepository } from '../../../enrollment/repo/enrollment.repo';
-import { RedisService } from 'src/redis/redis.service';
-import { CourseProgressService } from './course-progress.service';
 import { InstructerRepository } from 'src/instructer/repo/instructor';
 import { StripeGateway } from 'src/payment/infrastructure/stripe/stripe.payment.gateway';
 import { Action } from '../domain/enums/approv-enum';
 import { ExamRepository } from 'src/assessment/infrastructure/repo/exam.repo';
 import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
-import EventEmitter2 from 'eventemitter2';
+import { RedisCourse } from '../infrastructure/redis/handle.course';
+import { PromiseAll } from 'src/common/functions/handle.promise.all';
+import { EVENT_EMITTER2 } from '../domain/consts';
+import type { IPushCourseEvent } from '../domain/interface/event.emitter';
 
 @Injectable()
 export class CourseService {
-  private readonly logger = new Logger(CourseService.name);
   constructor(
     @InjectConnection() private sequlize: Sequelize,
     private readonly meilisearchService: MeilisearchService,
     private readonly enrollmentRepo: EnrollmentRepository,
     private readonly courseRepository: CourseRepository,
     private readonly examRepository: ExamRepository,
-    private readonly redisService: RedisService,
-    private readonly courseProgressService: CourseProgressService,
     private readonly instructerRepository: InstructerRepository,
     private readonly stripeGateway: StripeGateway,
-    private readonly eventEmitter2: EventEmitter2,
+    private readonly redisCourse: RedisCourse,
+    @Inject(EVENT_EMITTER2) private readonly pushCourseEvent: IPushCourseEvent,
   ) {}
 
   async saveAsDraft(dto: CreateCourseDto, instructorId: number) {
@@ -81,23 +80,19 @@ export class CourseService {
         transaction,
       );
 
-      await this.courseRepository.createRequirements(
-        requirements,
-        createdCourse.id,
-        transaction,
-      );
-
-      await this.courseRepository.createAudiences(
-        audiences,
-        createdCourse.id,
-        transaction,
-      );
-
-      await this.courseRepository.createGoals(
-        goals,
-        createdCourse.id,
-        transaction,
-      );
+      await PromiseAll([
+        this.courseRepository.createRequirements(
+          requirements,
+          createdCourse.id,
+          transaction,
+        ),
+        this.courseRepository.createAudiences(
+          audiences,
+          createdCourse.id,
+          transaction,
+        ),
+        this.courseRepository.createGoals(goals, createdCourse.id, transaction),
+      ]);
 
       return createdCourse;
     });
@@ -156,15 +151,17 @@ export class CourseService {
     await index.addDocuments(searchableCourses);
   }
 
+  // user ownerguard
   // send course to admin for review
   async sendCourseForReview(
     courseId: number,
     instructorId: number,
     email: string,
   ) {
-    const course = await this.courseRepository.getCourseById(courseId);
-
-    const states = await this.courseRepository.getCourseState(courseId);
+    const [course, states] = await PromiseAll([
+      this.courseRepository.getCourseById(courseId),
+      this.courseRepository.getCourseState(courseId),
+    ]);
     course.check(states);
 
     const instructer =
@@ -184,7 +181,8 @@ export class CourseService {
 
     const status = course.updateStatusToPending();
     await this.courseRepository.updateStatus(courseId, status);
-    this.eventEmitter2.emit('course.review', {
+
+    this.pushCourseEvent.emit('course.review', {
       title: course.getTitle(),
       email,
       instructorId,
@@ -194,13 +192,7 @@ export class CourseService {
 
   // update course status by admin
   async updateCourseStatus(courseId: number, dto: updateCourseStatusDto) {
-    const [course, courseInfo] = await Promise.all([
-      this.courseRepository.getCourseById(courseId),
-      this.courseRepository.getInstructerId(courseId),
-    ]);
-
-    if (courseInfo && courseInfo.instructerId !== dto.instructerId)
-      throw new ConflictException('this course not related to this instructer');
+    const course = await this.courseRepository.getCourseById(courseId);
 
     const transaction = await this.sequlize.transaction(async (transaction) => {
       if (dto.action === Action.REJECT) {
@@ -217,7 +209,7 @@ export class CourseService {
           transaction,
         );
 
-        this.eventEmitter2.emit('course.rejected', {
+        this.pushCourseEvent.emit('course.rejected', {
           instructerId: dto.instructerId,
           title: course.getTitle(),
           email: dto.instructerEmail,
@@ -235,7 +227,8 @@ export class CourseService {
         transaction,
       );
       await this.courseRepository.deleteReasonOfReject(courseId, transaction);
-      this.eventEmitter2.emit('course.published', {
+
+      this.pushCourseEvent.emit('course.published', {
         title: course.getTitle(),
         email: dto.instructerEmail,
         instructerId: dto.instructerId,
@@ -278,18 +271,13 @@ export class CourseService {
 
   // get all sections and final exam for a course for enrolled user
   async getCoursePreview(courseId: number, userId: number) {
-    const courseExist =
-      await this.courseRepository.findForPreviewById(courseId);
-    if (!courseExist) throw new NotFoundException('Course not found');
+    // const courseExist =
+    //   await this.courseRepository.findForPreviewById(courseId);
+    // if (!courseExist) throw new NotFoundException('Course not found');
 
     // set isEnrolled in cache when user complete payment process for course
     let isEnrolled =
-      (await this.redisService.client
-        .get(`enrolled:${userId.toString()}:${courseId.toString()}`)
-        .catch((err) => {
-          this.logger.error('get enroll case is fail');
-          return null;
-        })) === 'true';
+      (await this.redisCourse.getIsEnrolled(userId, courseId)) === 'true';
 
     // ensure that user is enrolled or not from db
     if (!isEnrolled) {
@@ -300,25 +288,16 @@ export class CourseService {
 
       if (!isEnrolled) throw new ForbiddenException('not allowed for you !! ');
 
-      await this.redisService.client
-        .set(
-          `enrolled:${userId.toString()}:${courseId.toString()}`,
-          JSON.stringify(isEnrolled),
-          'EX',
-          7 * 24 * 60 * 60,
-        )
-        .catch((err) => {
-          this.logger.error("can't write in cache");
-        }); // set userId in redis for 7 days
+      // set userId in redis for 7 days
+      await this.redisCourse.setIsEnrolled(userId, courseId);
     }
     //coursePreview => contains all sections ('id' , 'title' , 'description')
     // and lessons ("id" , "type" , "decription")
-    const [coursePreview, finalExam] = await Promise.all([
+
+    const [coursePreview, finalExam] = await PromiseAll([
       this.courseRepository.coursePreview(courseId),
       this.examRepository.findExamDetails(courseId, ExamTypes.FINAL, userId),
-    ]).catch((err) => {
-      throw new BadRequestException(err);
-    });
+    ]);
 
     if (!coursePreview || !finalExam)
       throw new NotFoundException('content not found');
@@ -332,7 +311,7 @@ export class CourseService {
     //if user enrolled in course and course is not published(archieved) then allow to view the course preview
     // ensure that users enrolled have access on the courses
 
-    if (!allowed.includes(courseExist.status))
+    if (!allowed.includes(coursePreview.status))
       throw new BadRequestException('not allowed to view this course');
 
     return {
@@ -380,10 +359,6 @@ export class CourseService {
 
       return true;
     });
-  }
-
-  async verifyCourseStudentCompleted(courseId: number, userId: number) {
-    return this.courseProgressService.verifyCourseProgress(courseId, userId);
   }
 
   async getAllCoursesToHome() {

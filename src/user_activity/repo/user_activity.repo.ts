@@ -3,16 +3,21 @@ import { InjectModel } from '@nestjs/sequelize';
 import { HandleException } from 'src/db/db.service';
 import { Course } from 'src/learning/course/infrastructure/persistence/models/course.entity';
 import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
-import { Badge } from 'src/gamification2/infrastructure/models/badge/badge';
-import { UserBadge } from 'src/gamification2/infrastructure/models/badge/badge.user';
-import { Quest } from 'src/gamification2/infrastructure/models/quest/quest';
-import { UserQuest } from 'src/gamification2/infrastructure/models/quest/user.quest';
-import { Reward } from 'src/gamification2/infrastructure/models/reward/reward';
-import { RewardUser } from 'src/gamification2/infrastructure/models/reward/reward.user';
+import { Badge } from 'src/gamification/infrastructure/models/badge/badge';
+import { UserBadge } from 'src/gamification/infrastructure/models/badge/badge.user';
+import { Quest } from 'src/gamification/infrastructure/models/quest/quest';
+import { UserQuest } from 'src/gamification/infrastructure/models/quest/user.quest';
+import { Reward } from 'src/gamification/infrastructure/models/reward/reward';
+import { RewardUser } from 'src/gamification/infrastructure/models/reward/reward.user';
 
 export interface UserActivityData {
   courses: { title: string }[];
-  badges: { title: string }[];
+  badges: {
+    title: string;
+    progress: number;
+    targetNumToUnlock: number;
+    unlocked: boolean;
+  }[];
   quests: { title: string }[];
   rewards: { title: string }[];
 }
@@ -48,12 +53,12 @@ export class UserActivityRepository {
           }),
           this.userBadgeModel.findAll({
             where: { userId },
-            attributes: ['badgeId'],
+            attributes: ['badgeId', 'progress', 'lock'],
             include: [
               {
                 model: Badge,
                 as: 'badge',
-                attributes: ['name'],
+                attributes: ['name', 'targetNumToUnlock'],
                 required: true,
               },
             ],
@@ -90,7 +95,12 @@ export class UserActivityRepository {
           .map(({ course }) => ({ title: course.title })),
         badges: userBadges
           .filter((userBadge) => userBadge.badge)
-          .map(({ badge }) => ({ title: badge.name })),
+          .map(({ badge, progress, lock }) => ({
+            title: badge.name,
+            progress,
+            targetNumToUnlock: badge.targetNumToUnlock,
+            unlocked: !lock,
+          })),
         quests: userQuests
           .filter((userQuest) => userQuest.quest)
           .map(({ quest }) => ({ title: quest.name })),

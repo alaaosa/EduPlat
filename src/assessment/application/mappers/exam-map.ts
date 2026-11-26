@@ -1,14 +1,13 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ExamTypes } from 'src/assessment/domain/shared/enum/types-of-exam';
 import { EnrollmentRepository } from 'src/enrollment/repo/enrollment.repo';
-import { LessonRepository } from 'src/lesson/repo/lesson.repo';
-import { ExamRecord } from '../helpers';
+import { ExamHelper } from '../helpers';
 
 @Injectable()
 export class ExamMap {
   constructor(
     private readonly enrollmentRepo: EnrollmentRepository,
-    private readonly examRecord: ExamRecord,
+    private readonly examRecord: ExamHelper,
   ) {}
 
   private async isEligibleForExam(courseId: number, userId: number) {

@@ -12,10 +12,10 @@ import { MuxModule } from './mux/mux.module';
 import { RedisModule } from './redis/redis.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { PaymentModule } from './payment/payment.module';
-import { GamificationModule } from './gamification2/gamification.module';
+import { GamificationModule } from './gamification/gamification.module';
 import { DbModule } from './db/db.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { InstructerModule } from './instructer/instructer.module';
 import { UserActivityModule } from './user_activity/user_activity.module';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -25,6 +25,7 @@ import { PromotionModule } from './promotion/promotion.module';
 import { CommunityModule } from './community/community.module';
 import { CertificateModule } from './certificate/certificate.module';
 import { LessonModule } from './lesson/lesson.module';
+import { AppExceptionFilter } from './common/exceptions';
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -66,6 +67,10 @@ import { LessonModule } from './lesson/lesson.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AppExceptionFilter,
     },
   ],
 })
